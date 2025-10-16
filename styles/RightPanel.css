@@ -1,0 +1,79 @@
+.right-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 270px;
+  background-color: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  gap: 1.2rem;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.widget {
+  width: 100%;
+  background-color: #f9fafb;
+  border-radius: 12px;
+  padding: 0.75rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.widget-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.widget-text {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.divider {
+  margin: 0.5rem 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+.widget-total {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* 🗓️ Takvim */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  font-size: 0.75rem;
+}
+
+.calendar-header {
+  font-weight: 600;
+  text-align: center;
+}
+
+.calendar-day {
+  text-align: center;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.calendar-day.today {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 700;
+}

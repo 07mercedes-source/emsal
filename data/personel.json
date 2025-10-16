@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "sicil": "1001",
+    "name": "Ali",
+    "surname": "Yılmaz",
+    "address": "Berlin",
+    "phone": "012345678",
+    "start": "2022-01-01",
+    "end": "",
+    "brut": 3000,
+    "steuer": "Klasse 1",
+    "restaurant": "Restaurant 1",
+    "position": "Şef"
+  }
+]
