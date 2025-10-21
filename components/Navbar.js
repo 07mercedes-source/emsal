@@ -5,49 +5,69 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 
-export default function Navbar(){
+export default function Navbar() {
   const router = useRouter();
-  const { user, logout } = useAuth();
-  const { t, setLang } = useLanguage();
+  const { user, logout, isReady } = useAuth();
+  const { t, setLang, lang } = useLanguage();
+  const [time, setTime] = useState(new Date());
 
-  const [time, setTime] = useState("");
+  useEffect(() => {
+    const i = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(i);
+  }, []);
 
-  useEffect(()=> {
-    const update = () => setTime(new Date().toLocaleString("de-DE", { hour12:false }));
-    update();
-    const i = setInterval(update, 1000);
-    return ()=> clearInterval(i);
-  },[]);
+  const navBtn = {
+    background: "#0f172a",
+    color: "#fff",
+    border: "none",
+    padding: "10px 14px",
+    margin: "0 6px",
+    borderRadius: 8,
+    cursor: "pointer",
+    fontWeight: 600,
+  };
+
+  const actionBtn = {
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: "none",
+    cursor: "pointer",
+    fontWeight: 600,
+  };
 
   return (
-    <nav className="navbar">
-      <div style={{display:"flex", alignItems:"center", gap:12}}>
-        <div style={{display:"flex", alignItems:"center", gap:10, cursor:"pointer"}} onClick={()=>router.push("/")}>
-          <img src="/logo.png" alt="logo" style={{height:48, background:"#fff", padding:4, borderRadius:6}} />
-          <div style={{fontWeight:700}}>EMSAL GmbH</div>
+    <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 12, background: "#0b1220", color: "#fff", position: "sticky", top: 0, zIndex: 1100 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }} onClick={() => router.push("/")}>
+          <img src="/logo.png" alt="EMSAL" style={{ height: 64, marginRight: 8, background: "#fff", borderRadius: 8, padding: 6 }} />
+          <div style={{ fontWeight: 800, color: "#cfe0ff", fontSize: 18 }}>EMSAL GmbH</div>
         </div>
       </div>
 
-      <div style={{display:"flex", gap:8, alignItems:"center"}}>
-        <Link href="/" className="nav-link">🏠 {t("home")}</Link>
-        <Link href="/depo" className="nav-link">📦 {t("depo")}</Link>
-        <Link href="/ik" className="nav-link">👥 {t("ik")}</Link>
-        <Link href="/restaurant/1" className="nav-link">🍽 Restaurant 1</Link>
-        <Link href="/restaurant/2" className="nav-link">🍽 Restaurant 2</Link>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <Link href="/"><button style={navBtn}>{t("home")}</button></Link>
+        <Link href="/depo"><button style={navBtn}>{t("depo")}</button></Link>
+        <Link href="/ik"><button style={navBtn}>{t("ik")}</button></Link>
+        <button style={navBtn} onClick={() => router.push("/restaurant/1")}>Restaurant 1</button>
+        <button style={navBtn} onClick={() => router.push("/restaurant/2")}>Restaurant 2</button>
       </div>
 
-      <div style={{display:"flex", alignItems:"center", gap:8}}>
-        <div style={{color:"#9fb2ff", fontWeight:600}}>{user ? `${user.name} • ${user.role}` : ""}</div>
-        <div style={{color:"#cfd8ff", fontSize:13}}>{time}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ color: "#9fb2ff", fontWeight: 600 }}>{user ? `${user.name} • ${user.role || "Personel"}` : isReady ? "" : "Yükleniyor..."}</div>
+        <div style={{ color: "#cfd8ff", fontSize: 13 }}>{time.toLocaleString("de-DE", { hour12: false })}</div>
 
-        <button className="btn" style={{background:"transparent", border:"1px solid rgba(255,255,255,0.06)", color:"#fff", padding:"6px 8px", borderRadius:8}} onClick={()=>setLang("tr")}>🇹🇷</button>
-        <button className="btn" style={{background:"transparent", border:"1px solid rgba(255,255,255,0.06)", color:"#fff", padding:"6px 8px", borderRadius:8}} onClick={()=>setLang("en")}>🇬🇧</button>
-        <button className="btn" style={{background:"transparent", border:"1px solid rgba(255,255,255,0.06)", color:"#fff", padding:"6px 8px", borderRadius:8}} onClick={()=>setLang("de")}>🇩🇪</button>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button style={{ ...actionBtn, background: lang === "tr" ? "#0ea5e9" : "transparent" }} onClick={() => setLang("tr")}>🇹🇷</button>
+          <button style={{ ...actionBtn, background: lang === "en" ? "#0ea5e9" : "transparent" }} onClick={() => setLang("en")}>🇬🇧</button>
+          <button style={{ ...actionBtn, background: lang === "de" ? "#0ea5e9" : "transparent" }} onClick={() => setLang("de")}>🇩🇪</button>
+        </div>
 
         {user ? (
-          <button className="btn btn-red" onClick={()=>{ logout(); router.push("/login"); }}>🔒 Çıkış</button>
+          <button style={{ ...actionBtn, background: "#ef4444", color: "#fff" }} onClick={() => { logout(); router.push("/login"); }}>
+            {t("logout")}
+          </button>
         ) : (
-          <Link href="/login" className="btn btn-green">🔐 {t("login")}</Link>
+          <Link href="/login"><button style={{ ...actionBtn, background: "#10b981", color: "#fff" }}>{t("login")}</button></Link>
         )}
       </div>
     </nav>
