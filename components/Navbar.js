@@ -6,9 +6,9 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function Navbar() {
-  const router = useRouter();
-  const { user, logout, isReady } = useAuth();
-  const { t, setLang, lang } = useLanguage();
+  const { user, logout } = useAuth() || { user: null, logout: () => {} };
+  const { t, setLang, lang } = useLanguage() || { t: (x) => x, setLang: () => {}, lang: "tr" };
+
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
