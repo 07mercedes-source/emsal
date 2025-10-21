@@ -1,5 +1,4 @@
-// context/AuthContext.js
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
@@ -7,31 +6,31 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined") {
-        const s = localStorage.getItem("emsal_user");
-        if (s) setUser(JSON.parse(s));
-      }
-    } catch (e) {}
+    // LocalStorage'dan kullanıcıyı yükle
+    const stored = localStorage.getItem("user");
+    if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  const login = (username, role = "personel") => {
-    const u = { name: username, role };
+  const login = (u) => {
     setUser(u);
-    try { localStorage.setItem("emsal_user", JSON.stringify(u)); } catch(e){}
-    return { ok: true, user: u };
+    localStorage.setItem("user", JSON.stringify(u));
   };
 
   const logout = () => {
     setUser(null);
-    try { localStorage.removeItem("emsal_user"); } catch(e){}
+    localStorage.removeItem("user");
   };
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export function useAuth(){
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
-  return ctx;
+export function useAuth() {
+  const context = useContext(AuthContext);
+  // SSR'da context null olabilir, güvenli return:
+  if (!context) return { user: null, login: () => {}, logout: () => {} };
+  return context;
 }
