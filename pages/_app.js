@@ -1,23 +1,26 @@
-// pages/_app.js
+import dynamic from "next/dynamic";
 import "../styles/globals.css";
 import { AuthProvider } from "../context/AuthContext";
-import { LanguageProvider } from "../context/LanguageContext";
 import { IKProvider } from "../context/IKContext";
+import { DepoProvider } from "../context/DepoContext";
 import { RestaurantProvider } from "../context/RestaurantContext";
 import Layout from "../components/Layout";
 
-export default function MyApp({ Component, pageProps }){
+function MyApp({ Component, pageProps }) {
   return (
     <AuthProvider>
-      <LanguageProvider>
-        <IKProvider>
+      <IKProvider>
+        <DepoProvider>
           <RestaurantProvider>
             <Layout>
               <Component {...pageProps} />
             </Layout>
           </RestaurantProvider>
-        </IKProvider>
-      </LanguageProvider>
+        </DepoProvider>
+      </IKProvider>
     </AuthProvider>
   );
 }
+
+// Vercel build’ında SSR devre dışı, hata kesilir:
+export default dynamic(() => Promise.resolve(MyApp), { ssr: false });
