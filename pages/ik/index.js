@@ -1,46 +1,60 @@
 // pages/ik/index.js
-import { useState } from "react";
+import React, { useState } from "react";
 import { useIK } from "../../context/IKContext";
+import { useLanguage } from "../../context/LanguageContext";
 
-export default function IKPersonnelPage(){
-  const { personnel, setPersonnel } = useIK();
-  const [searchTerm, setSearchTerm] = useState("");
+export default function IKPage() {
+  const { personnel, addPerson, updatePerson, removePerson } = useIK();
+  const { t } = useLanguage();
+  const [search, setSearch] = useState("");
 
-  const filtered = (personnel||[]).filter(p =>
-    (p.name||"").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.title||"").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(p.id).includes(searchTerm)
+  const filtered = (personnel || []).filter(p =>
+    `${p.name} ${p.position} ${p.id}`.toLowerCase().includes(search.toLowerCase())
   );
 
-  const add = () => {
-    const newId = personnel.length ? Math.max(...personnel.map(x=>x.id))+1 : 101;
-    setPersonnel([...personnel, { id:newId, name:"", title:"", salary:0, hireDate:new Date().toISOString().slice(0,10) }]);
-  };
-  const change = (id, field, value) => setPersonnel(personnel.map(p=>p.id===id?{...p,[field]: field==="salary"?Number(value):value}:p));
-  const remove = id => { if(confirm("Silinsin mi?")) setPersonnel(personnel.filter(p=>p.id!==id)); };
+  const handleAdd = () => addPerson({ name: "", registry: "", address: "", phone: "", restaurant: "", position: "", salary: 0, steuerklasse: "1", hireDate: "", leaveDate: "" });
 
   return (
     <div>
-      <div className="top-row">
-        <h2>👨‍💼 Personel Listesi</h2>
-        <div style={{display:"flex", gap:8}}>
-          <button className="btn" style={{background:"#2563eb", color:"#fff"}} onClick={add}>➕ Yeni Personel</button>
-          <input placeholder="Ara (Ad/Ünvan/ID)" className="input-cell" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} />
+      <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>{t("personnel")}</h2>
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={handleAdd} style={{ padding: "8px 12px", background: "#2563eb", color: "#fff", borderRadius: 8 }}>➕ Yeni Personel Ekle</button>
         </div>
+
+        <input placeholder="Ara..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: "8px", borderRadius: 8, border: "1px solid #ddd", width: 240 }} />
       </div>
 
-      <div className="table-card">
-        <table className="table">
-          <thead><tr><th>ID</th><th>Adı</th><th>Ünvan</th><th>Maaş (€)</th><th>İşe Giriş</th><th>Aksiyon</th></tr></thead>
+      <div style={{ overflowX: "auto", background: "#fff", borderRadius: 8 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead style={{ background: "#f8fafc" }}>
+            <tr>
+              <th style={{ padding: 10 }}>Sicil</th>
+              <th style={{ padding: 10 }}>Ad Soyad</th>
+              <th style={{ padding: 10 }}>Telefon</th>
+              <th style={{ padding: 10 }}>Adres</th>
+              <th style={{ padding: 10 }}>Restaurant</th>
+              <th style={{ padding: 10 }}>Pozisyon</th>
+              <th style={{ padding: 10 }}>Brüt (€)</th>
+              <th style={{ padding: 10 }}>Steuer</th>
+              <th style={{ padding: 10 }}>Aksiyon</th>
+            </tr>
+          </thead>
           <tbody>
-            {filtered.map(p=>(
-              <tr key={p.id}>
-                <td>{p.id}</td>
-                <td><input className="input-cell" value={p.name} onChange={e=>change(p.id,"name",e.target.value)} /></td>
-                <td><input className="input-cell" value={p.title} onChange={e=>change(p.id,"title",e.target.value)} /></td>
-                <td><input className="input-cell" type="number" value={p.salary} onChange={e=>change(p.id,"salary",e.target.value)} /></td>
-                <td><input className="input-cell" type="date" value={p.hireDate} onChange={e=>change(p.id,"hireDate",e.target.value)} /></td>
-                <td><button className="btn" style={{background:"#ef4444", color:"#fff"}} onClick={()=>remove(p.id)}>🗑️</button></td>
+            {filtered.map(p => (
+              <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
+                <td style={{ padding: 10 }}><input value={p.registry} onChange={(e) => updatePerson(p.id, { registry: e.target.value })} style={{ width: 90 }} /></td>
+                <td style={{ padding: 10 }}><input value={p.name} onChange={(e) => updatePerson(p.id, { name: e.target.value })} /></td>
+                <td style={{ padding: 10 }}><input value={p.phone} onChange={(e) => updatePerson(p.id, { phone: e.target.value })} /></td>
+                <td style={{ padding: 10 }}><input value={p.address} onChange={(e) => updatePerson(p.id, { address: e.target.value })} /></td>
+                <td style={{ padding: 10 }}><input value={p.restaurant} onChange={(e) => updatePerson(p.id, { restaurant: e.target.value })} /></td>
+                <td style={{ padding: 10 }}><input value={p.position} onChange={(e) => updatePerson(p.id, { position: e.target.value })} /></td>
+                <td style={{ padding: 10 }}><input type="number" value={p.salary} onChange={(e) => updatePerson(p.id, { salary: Number(e.target.value) })} style={{ width: 100 }} /></td>
+                <td style={{ padding: 10 }}><input value={p.steuerklasse} onChange={(e) => updatePerson(p.id, { steuerklasse: e.target.value })} style={{ width: 70 }} /></td>
+                <td style={{ padding: 10 }}>
+                  <button onClick={() => removePerson(p.id)} style={{ background: "#ef4444", color: "#fff", border: "none", padding: "6px 8px", borderRadius: 6 }}>🗑️</button>
+                </td>
               </tr>
             ))}
           </tbody>

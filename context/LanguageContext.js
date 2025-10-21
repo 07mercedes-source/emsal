@@ -1,13 +1,7 @@
 // context/LanguageContext.js
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-const defaultLang = {
-  lang: "tr",
-  setLang: () => {},
-  t: (k) => k,
-};
-
-const LanguageContext = createContext(defaultLang);
+const LanguageContext = createContext(null);
 
 const translations = {
   tr: {
@@ -18,15 +12,23 @@ const translations = {
     logout: "Çıkış",
     restaurant: "Restaurant",
     products: "Ürün Listesi",
+    personnel: "Personel Listesi",
+    add: "Ekle",
+    remove: "Sil",
+    edit: "Düzenle",
   },
   en: {
     home: "Home",
     depo: "Warehouse",
-    ik: "HR",
+    ik: "Human Resources",
     login: "Login",
     logout: "Logout",
     restaurant: "Restaurant",
     products: "Products",
+    personnel: "Personnel",
+    add: "Add",
+    remove: "Remove",
+    edit: "Edit",
   },
   de: {
     home: "Startseite",
@@ -36,6 +38,10 @@ const translations = {
     logout: "Abmelden",
     restaurant: "Restaurant",
     products: "Produkte",
+    personnel: "Personal",
+    add: "Hinzufügen",
+    remove: "Löschen",
+    edit: "Bearbeiten",
   },
 };
 
@@ -50,13 +56,14 @@ export function LanguageProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem("emsal_lang", lang);
-    } catch (e) {}
+    try { localStorage.setItem("emsal_lang", lang); } catch (e) {}
   }, [lang]);
 
   const t = (key) => {
-    return translations[lang] && translations[lang][key] ? translations[lang][key] : key;
+    const v = translations[lang] && translations[lang][key];
+    // Baş harf büyük, diğerleri küçük:
+    if (!v) return key;
+    return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
   };
 
   return <LanguageContext.Provider value={{ lang, setLang, t }}>{children}</LanguageContext.Provider>;
