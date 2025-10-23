@@ -11,7 +11,9 @@ import Layout from "../components/Layout";
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
-  if (!router?.isReady) return null;
+
+  // Router hazır olmadan hiçbir şey render etme
+  if (!router || !router.isReady) return null;
 
   return (
     <AuthProvider>
@@ -30,4 +32,5 @@ function MyApp({ Component, pageProps }) {
   );
 }
 
+// SSR’ı kapatıyoruz ki Vercel client-side renderda hata vermesin
 export default dynamic(() => Promise.resolve(MyApp), { ssr: false });
