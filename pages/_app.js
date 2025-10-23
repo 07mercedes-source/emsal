@@ -11,7 +11,7 @@ import Layout from "../components/Layout";
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
-  if (!router.isReady) return null;
+  if (!router?.isReady) return null;
 
   return (
     <AuthProvider>
