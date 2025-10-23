@@ -12,8 +12,8 @@ import { LanguageProvider } from "../context/LanguageContext";
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
 
-  // isReady değişkenini kullanmak yerine doğrudan router kontrolü
-  if (!router?.isReady) return null;
+  // router.isReady kontrolü: Next.js 13–14'te güvenli yöntem
+  if (!router.isReady) return null;
 
   return (
     <AuthProvider>
@@ -32,4 +32,5 @@ function MyApp({ Component, pageProps }) {
   );
 }
 
+// SSR kapatıyoruz (bazı context’lerde hydration sorunu çözülür)
 export default dynamic(() => Promise.resolve(MyApp), { ssr: false });
