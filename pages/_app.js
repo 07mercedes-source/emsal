@@ -1,3 +1,4 @@
+// pages/_app.js
 import "../styles/globals.css";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
@@ -11,21 +12,23 @@ import { LanguageProvider } from "../context/LanguageContext";
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
 
-  if (!router.isReady) return null;
+  // router may be undefined during SSR; return null until ready
+  if (typeof window === "undefined") return <Component {...pageProps} />; // SSR safe fallback
+  if (!router?.isReady) return null;
 
   return (
     <AuthProvider>
-      <IKProvider>
-        <DepoProvider>
-          <RestaurantProvider>
-            <LanguageProvider>
+      <LanguageProvider>
+        <IKProvider>
+          <DepoProvider>
+            <RestaurantProvider>
               <Layout>
                 <Component {...pageProps} />
               </Layout>
-            </LanguageProvider>
-          </RestaurantProvider>
-        </DepoProvider>
-      </IKProvider>
+            </RestaurantProvider>
+          </DepoProvider>
+        </IKProvider>
+      </LanguageProvider>
     </AuthProvider>
   );
 }
