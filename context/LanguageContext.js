@@ -1,4 +1,3 @@
-// context/LanguageContext.js
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const LanguageContext = createContext(null);
@@ -10,9 +9,9 @@ const translations = {
     ik: "İnsan Kaynakları",
     login: "Giriş",
     logout: "Çıkış",
-    restaurant: "Restaurant",
-    products: "Ürün Listesi",
-    personnel: "Personel Listesi",
+    restaurant: "Restoran",
+    products: "Ürünler",
+    personnel: "Personel",
     add: "Ekle",
     remove: "Sil",
     edit: "Düzenle",
@@ -20,14 +19,14 @@ const translations = {
   en: {
     home: "Home",
     depo: "Warehouse",
-    ik: "Human Resources",
+    ik: "HR",
     login: "Login",
     logout: "Logout",
     restaurant: "Restaurant",
     products: "Products",
     personnel: "Personnel",
     add: "Add",
-    remove: "Remove",
+    remove: "Delete",
     edit: "Edit",
   },
   de: {
@@ -49,24 +48,21 @@ export function LanguageProvider({ children }) {
   const [lang, setLang] = useState("tr");
 
   useEffect(() => {
-    try {
-      const l = localStorage.getItem("emsal_lang");
-      if (l) setLang(l);
-    } catch (e) {}
+    const saved = localStorage.getItem("emsal_lang");
+    if (saved) setLang(saved);
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem("emsal_lang", lang); } catch (e) {}
+    localStorage.setItem("emsal_lang", lang);
   }, [lang]);
 
-  const t = (key) => {
-    const v = translations[lang] && translations[lang][key];
-    // Baş harf büyük, diğerleri küçük:
-    if (!v) return key;
-    return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
-  };
+  const t = (key) => translations[lang]?.[key] || key;
 
-  return <LanguageContext.Provider value={{ lang, setLang, t }}>{children}</LanguageContext.Provider>;
+  return (
+    <LanguageContext.Provider value={{ lang, setLang, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
 }
 
 export const useLanguage = () => useContext(LanguageContext);
