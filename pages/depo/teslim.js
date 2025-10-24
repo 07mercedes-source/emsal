@@ -1,30 +1,41 @@
 // pages/depo/teslim.js
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDepo } from "../../context/DepoContext";
+import { useRouter } from "next/router";
 
-export default function Teslim() {
-  const { products, updateProduct } = useDepo();
+export default function TeslimAl() {
+  const router = useRouter();
+  const { products, receiveProduct } = useDepo();
   const [id, setId] = useState("");
   const [qty, setQty] = useState(0);
+  const [cost, setCost] = useState(0);
+  const [expiry, setExpiry] = useState("");
 
-  const find = products.find((p) => String(p.id) === String(id));
-  const submit = () => {
-    if (!find) return alert("Ürün bulunamadı");
-    updateProduct(find.id, { stock: Number(find.stock || 0) + Number(qty) });
+  function findName(id) {
+    const p = products.find((x) => x.id === id);
+    return p ? p.name : "";
+  }
+
+  function handleSubmit(e) {
+    e?.preventDefault();
+    if (!id || qty <= 0) return alert("Id ve miktar girin");
+    receiveProduct({ id, qty, cost, expiry });
     alert("Teslim alındı");
-  };
+    router.push("/depo");
+  }
 
   return (
-    <div className="container">
-      <div className="card">
-        <h3>Ürün Teslim Alma</h3>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input placeholder="Ürün ID" value={id} onChange={(e) => setId(e.target.value)} />
-          <input placeholder="Adet" type="number" value={qty} onChange={(e) => setQty(e.target.value)} />
-          <button onClick={submit}>Kaydet</button>
-        </div>
-        <div style={{ marginTop: 12 }}>{find ? <div>İsim: {find.name} — Stok: {find.stock}</div> : "Ürün bulunamadı"}</div>
-      </div>
+    <div>
+      <h1>Teslim Alma</h1>
+      <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "200px 200px", gap: 8 }}>
+        <input placeholder="Ürün ID" value={id} onChange={(e) => setId(e.target.value)} />
+        <div>{findName(id)}</div>
+        <input type="number" placeholder="Adet" value={qty} onChange={(e) => setQty(Number(e.target.value))} />
+        <input type="number" placeholder="Maliyet" value={cost} onChange={(e) => setCost(Number(e.target.value))} />
+        <input type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+        <div />
+        <button style={{ padding: 8, background: "#0b1220", color: "#fff" }} type="submit">Teslim Al</button>
+      </form>
     </div>
   );
 }
