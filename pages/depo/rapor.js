@@ -1,30 +1,45 @@
 // pages/depo/rapor.js
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDepo } from "../../context/DepoContext";
 
-export default function DepoRapor() {
-  const { products } = useDepo();
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+function downloadCSV(filename, rows) {
+  const csv = rows.map(r => Object.values(r).map(v => `"${(v ?? "").toString().replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
 
-  // demo: burada gerçek sevk/teslim tarihleri olmadığından, sadece ürün listesi export olayı hazır
-  const exportExcel = () => {
-    alert("Excel export (demo). Gerçek export için xlsx entegre edilir.");
-  };
+export default function Rapor() {
+  const { getHistoryBetween, history } = useDepo();
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+
+  function handleExport() {
+    const rows = getHistoryBetween(start, end).map(h => ({
+      date: h.date,
+      type: h.type,
+      details: JSON.stringify(h.items || h),
+    }));
+    downloadCSV("depo_rapor.csv", [["date","type","details"], ...rows.map(r => [r.date, r.type, r.details])]);
+    alert("CSV indirildi");
+  }
 
   return (
-    <div className="container">
-      <div className="card">
-        <h3>Depo Raporları</h3>
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-          <button onClick={exportExcel}>Excel</button>
-        </div>
-        <table className="table">
-          <thead><tr><th>ID</th><th>Ürün Adı</th><th>Stok</th><th>Maliyet</th></tr></thead>
-          <tbody>{products.map(p => <tr key={p.id}><td>{p.id}</td><td>{p.name}</td><td>{p.stock}</td><td>€{p.cost}</td></tr>)}</tbody>
-        </table>
+    <div>
+      <h1>Depo Raporları</h1>
+      <div style={{ display: "flex", gap: 8 }}>
+        <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+        <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+        <button onClick={handleExport}>CSV İndir</button>
+      </div>
+
+      <div style={{ marginTop: 12 }}>
+        <h3>Son Hareketler</h3>
+        <ul>
+          {history.slice(0, 50).map((h, i) => <li key={i}>{h.date} • {h.type} • {JSON.stringify(h.items || h)}</li>)}
+        </ul>
       </div>
     </div>
   );
