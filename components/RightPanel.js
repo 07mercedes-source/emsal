@@ -1,62 +1,50 @@
 // components/RightPanel.js
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useRestaurant } from "../context/RestaurantContext";
 
 export default function RightPanel() {
-  const { movements } = useRestaurant();
-  const [today, setToday] = useState(new Date());
-  const [r1Total, setR1Total] = useState(0);
-  const [r2Total, setR2Total] = useState(0);
+  const { entries } = useRestaurant();
 
-  useEffect(() => {
-    setToday(new Date());
-  }, []);
+  // calculate monthly totals for restaurant1 and restaurant2 for current month
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
 
-  useEffect(() => {
-    // Aktif ay için toplayalım (bugünün ayı)
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const currentMonth = `${yyyy}-${mm}`;
+  const calc = (rid) => {
+    const list = entries.filter((e) => e.restaurant === rid);
+    const monthly = list.filter((e) => {
+      const d = new Date(e.date);
+      return d.getMonth() + 1 === month && d.getFullYear() === year;
+    });
+    const gelir = monthly.filter((m) => m.type === "gelir").reduce((s, x) => s + Number(x.amount || 0), 0);
+    const gider = monthly.filter((m) => m.type === "gider").reduce((s, x) => s + Number(x.amount || 0), 0);
+    return { gelir, gider, net: gelir - gider };
+  };
 
-    const r1 = movements.filter(m => m.restaurant === "1" && m.date.startsWith(currentMonth));
-    const r2 = movements.filter(m => m.restaurant === "2" && m.date.startsWith(currentMonth));
-
-    const sum = arr => arr.reduce((s, it) => it.type === "gelir" ? s + Number(it.amount) : s - Number(it.amount), 0);
-    setR1Total(sum(r1));
-    setR2Total(sum(r2));
-  }, [movements, today]);
+  const r1 = calc(1);
+  const r2 = calc(2);
 
   return (
-    <aside style={{
-      position: "fixed",
-      right: 0,
-      top: 72, // navbar yüksekliğine göre ayarlandı
-      width: 280,
-      height: "calc(100vh - 72px)",
-      background: "#ffffff",
-      borderLeft: "1px solid #e6e6e6",
-      padding: 16,
-      overflowY: "auto",
-      zIndex: 1000,
-    }}>
-      <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>📊 Anlık Durum</div>
+    <aside className="right-panel card">
+      <h4>🌤️ Berlin Hava Durumu</h4>
+      <div>18°C, Açık</div>
 
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontWeight: 700 }}>🌤️ Berlin Hava Durumu</div>
-        <div style={{ fontSize: 14 }}>18°C, Açık</div>
-      </div>
+      <hr style={{ margin: "10px 0" }} />
 
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontWeight: 700 }}>📅 Bugün</div>
-        <div>{today.toLocaleDateString("de-DE")}</div>
-      </div>
+      <h4>📅 Aylık Takvim</h4>
+      <div style={{ fontSize: 13 }}>{now.toLocaleString("tr-TR", { month: "long", year: "numeric" })}</div>
+      <div style={{ marginTop: 8, fontSize: 13 }}>Bugün: {now.toLocaleDateString("de-DE")}</div>
 
-      <div>
-        <div style={{ fontWeight: 700 }}>📈 Aylık Ciro (Aktif Ay)</div>
-        <div>Restaurant 1: €{Number(r1Total).toLocaleString("de-DE")}</div>
-        <div>Restaurant 2: €{Number(r2Total).toLocaleString("de-DE")}</div>
-        <div style={{ marginTop: 8, fontSize: 13, color: "#666" }}>Not: Aktif ayı sayfadan değiştirebilirsiniz.</div>
-      </div>
+      <hr style={{ margin: "10px 0" }} />
+
+      <h4>📊 Restaurant Ciro</h4>
+      <div style={{ fontWeight: 700 }}>R1 Toplam: €{r1.gelir.toLocaleString()}</div>
+      <div style={{ fontWeight: 700 }}>R1 Gider: €{r1.gider.toLocaleString()}</div>
+      <div style={{ marginBottom: 8 }}>Net: €{r1.net.toLocaleString()}</div>
+
+      <div style={{ fontWeight: 700, marginTop: 8 }}>R2 Toplam: €{r2.gelir.toLocaleString()}</div>
+      <div style={{ fontWeight: 700 }}>R2 Gider: €{r2.gider.toLocaleString()}</div>
+      <div>Net: €{r2.net.toLocaleString()}</div>
     </aside>
   );
 }
