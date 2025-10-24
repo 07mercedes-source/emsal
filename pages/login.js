@@ -1,79 +1,36 @@
+// pages/login.js
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 
-export default function Login() {
-  const { login } = useAuth();
+export default function LoginPage() {
+  const { user, login } = useAuth() || {};
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [err, setErr] = useState("");
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const success = await login(username, password);
-    if (success) {
-      router.push("/");
-    } else {
-      setError("Kullanıcı adı veya şifre hatalı.");
-    }
-  };
+  async function handleSubmit(e) {
+    e?.preventDefault();
+    const ok = login(username.trim(), password);
+    if (!ok) setErr("Kullanıcı adı veya şifre hatalı");
+    else router.push("/");
+  }
+
+  // eğer zaten girişli ise anasayfaya gönder
+  if (user) {
+    router.push("/");
+    return null;
+  }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#0b1220",
-      }}
-    >
-      <form
-        onSubmit={handleLogin}
-        style={{
-          background: "#fff",
-          padding: 32,
-          borderRadius: 12,
-          display: "flex",
-          flexDirection: "column",
-          gap: 16,
-          width: 320,
-        }}
-      >
-        <h2 style={{ textAlign: "center", color: "#0b1220" }}>EMSAL Panel Giriş</h2>
-
-        <input
-          type="text"
-          placeholder="Kullanıcı Adı"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          style={{ padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-        />
-        <input
-          type="password"
-          placeholder="Şifre"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-        />
-
-        {error && <div style={{ color: "red", textAlign: "center" }}>{error}</div>}
-
-        <button
-          type="submit"
-          style={{
-            background: "#0b1220",
-            color: "#fff",
-            padding: 10,
-            borderRadius: 8,
-            border: "none",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          Giriş Yap
-        </button>
+    <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <form onSubmit={handleSubmit} style={{ width: 360, background: "#fff", padding: 24, borderRadius: 10 }}>
+        <h2 style={{ marginBottom: 10 }}>EMSAL Panel Giriş</h2>
+        <input placeholder="Kullanıcı Adı" value={username} onChange={(e) => setUsername(e.target.value)} style={{ width: "100%", padding: 8, marginBottom: 8 }} />
+        <input placeholder="Şifre" type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: "100%", padding: 8, marginBottom: 8 }} />
+        {err && <div style={{ color: "red", marginBottom: 8 }}>{err}</div>}
+        <button type="submit" style={{ width: "100%", padding: 10, background: "#0b1220", color: "#fff", border: "none", borderRadius: 6 }}>Giriş Yap</button>
       </form>
     </div>
   );
