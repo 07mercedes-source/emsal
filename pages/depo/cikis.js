@@ -1,50 +1,36 @@
 // pages/depo/cikis.js
-import { useState } from "react";
-import { useRouter } from "next/router";
+import React, { useState } from "react";
+import { useDepo } from "../../context/DepoContext";
 
-export default function CikisPage(){
-  const router = useRouter();
-  const [rows, setRows] = useState([{ id:"1", name:"Ürün 1", qty:1 }]);
+export default function Cikis() {
+  const { products, updateProduct } = useDepo();
+  const [id, setId] = useState("");
+  const [qty, setQty] = useState(0);
+  const [toRest, setToRest] = useState(1);
 
-  const change = (i, field, value)=> {
-    setRows(rows.map((r,idx)=> idx===i ? {...r,[field]:value}:r));
-  };
-  const addRow = ()=> setRows([...rows, { id:"", name:"", qty:1 }]);
-  const remove = (i)=> setRows(rows.filter((_,idx)=>idx!==i));
-
-  const submit = ()=> {
-    // gerçekte sevk işlemi yapılır (stok düşme vb.)
-    alert("Sevk oluşturuldu. (demo)");
-    router.push("/depo");
+  const find = products.find((p) => String(p.id) === String(id));
+  const submit = () => {
+    if (!find) return alert("Ürün bulunamadı");
+    if (Number(find.stock) < Number(qty)) return alert("Yetersiz stok");
+    updateProduct(find.id, { stock: Number(find.stock) - Number(qty) });
+    alert(`Sevk tamamlandı → Restoran ${toRest}`);
+    // burada sevk irsaliyesi oluşturma butonu / yazdırma eklenebilir
   };
 
   return (
-    <div>
-      <div className="top-row">
-        <h2>🚚 Sevk Et</h2>
-        <div>
-          <button className="btn" onClick={addRow} style={{background:"#2563eb", color:"#fff"}}>➕ Satır Ekle</button>
+    <div className="container">
+      <div className="card">
+        <h3>Ürün Sevk Et</h3>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input placeholder="Ürün ID" value={id} onChange={(e) => setId(e.target.value)} />
+          <input placeholder="Adet" type="number" value={qty} onChange={(e) => setQty(e.target.value)} />
+          <select value={toRest} onChange={(e) => setToRest(Number(e.target.value))}>
+            <option value={1}>Restaurant 1</option>
+            <option value={2}>Restaurant 2</option>
+          </select>
+          <button onClick={submit}>Sevk Et ve İrsaliye</button>
         </div>
-      </div>
-
-      <div className="table-card">
-        <table className="table">
-          <thead><tr><th>Ürün ID</th><th>Ürün Adı</th><th>Adet</th><th>Aksiyon</th></tr></thead>
-          <tbody>
-            {rows.map((r,i)=>(
-              <tr key={i}>
-                <td><input className="input-cell" value={r.id} onChange={e=>change(i,'id',e.target.value)} /></td>
-                <td><input className="input-cell" value={r.name} onChange={e=>change(i,'name',e.target.value)} /></td>
-                <td><input className="input-cell" type="number" value={r.qty} onChange={e=>change(i,'qty',e.target.value)} /></td>
-                <td><button className="btn" style={{background:"#ef4444", color:"#fff"}} onClick={()=>remove(i)}>🗑️</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div style={{marginTop:12, display:"flex", gap:8}}>
-          <button className="btn btn-green" onClick={submit}>✅ Sevk Et ve Yazdır</button>
-        </div>
+        <div style={{ marginTop: 12 }}>{find ? <div>İsim: {find.name} — Stok: {find.stock}</div> : "Ürün bulunamadı"}</div>
       </div>
     </div>
   );
