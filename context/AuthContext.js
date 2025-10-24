@@ -1,36 +1,44 @@
-import { createContext, useContext, useState, useEffect } from "react";
+// context/AuthContext.js
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext(null);
+
+// demo users
+const demoUsers = [
+  { username: "admin", password: "12345", name: "Admin Kullanıcı", role: "admin" },
+  { username: "muhasebe", password: "12345", name: "Muhasebe", role: "muhasebe" },
+  { username: "personel", password: "12345", name: "Personel", role: "personel" },
+];
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // LocalStorage'dan kullanıcıyı yükle
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
+    try {
+      const s = localStorage.getItem("emsal_user");
+      if (s) setUser(JSON.parse(s));
+    } catch (e) {}
   }, []);
 
-  const login = (u) => {
-    setUser(u);
-    localStorage.setItem("user", JSON.stringify(u));
+  useEffect(() => {
+    try {
+      if (user) localStorage.setItem("emsal_user", JSON.stringify(user));
+      else localStorage.removeItem("emsal_user");
+    } catch (e) {}
+  }, [user]);
+
+  const login = (username, password) => {
+    const found = demoUsers.find((d) => d.username === username && d.password === password);
+    if (found) {
+      setUser(found);
+      return { ok: true };
+    }
+    return { ok: false, msg: "Kullanıcı adı veya parola hatalı" };
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-  };
+  const logout = () => setUser(null);
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  // SSR'da context null olabilir, güvenli return:
-  if (!context) return { user: null, login: () => {}, logout: () => {} };
-  return context;
-}
+export const useAuth = () => useContext(AuthContext);
