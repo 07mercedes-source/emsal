@@ -3,45 +3,66 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 const IKContext = createContext(null);
 
-const samplePersonnel = Array.from({ length: 20 }).map((_, i) => ({
-  id: i + 1,
-  sicil: 1000 + i,
-  name: `Çalışan ${i + 1}`,
-  phone: `+49 170 000 ${100 + i}`,
-  address: `Berlin, Str ${i + 1}`,
-  restaurant: i % 2 === 0 ? "Restaurant 1" : "Restaurant 2",
-  position: i % 3 === 0 ? "Şef" : "Personel",
-  grossSalary: Math.round(2500 + Math.random() * 2000),
-  steuerKlasse: (i % 2) + 1,
-}));
+// örnek 20 personel
+const samplePersonnel = Array.from({ length: 20 }, (_, i) => {
+  const idx = i + 1;
+  return {
+    id: `E-${1000 + idx}`,
+    name: `Çalışan ${idx}`,
+    phone: `+49 30 5555${(100 + idx).toString().slice(-3)}`,
+    address: `Berlin, Straße ${idx}`,
+    restaurant: idx % 2 === 0 ? "Restaurant 2" : "Restaurant 1",
+    position: idx % 3 === 0 ? "Şef" : "Garson",
+    grossSalary: (2000 + idx * 50).toFixed(2),
+    steuerClass: idx % 2 === 0 ? "1" : "3",
+  };
+});
 
 export function IKProvider({ children }) {
-  const [personnel, setPersonnel] = useState([]);
-
-  useEffect(() => {
+  const [personnel, setPersonnel] = useState(() => {
     try {
-      const s = localStorage.getItem("emsal_personnel");
-      if (s) setPersonnel(JSON.parse(s));
-      else setPersonnel(samplePersonnel);
+      const raw = localStorage.getItem("emsal_personnel");
+      return raw ? JSON.parse(raw) : samplePersonnel;
     } catch (e) {
-      setPersonnel(samplePersonnel);
+      return samplePersonnel;
     }
-  }, []);
+  });
 
-  useEffect(() => {
-    try { localStorage.setItem("emsal_personnel", JSON.stringify(personnel)); } catch (e) {}
-  }, [personnel]);
+  const [forms, setForms] = useState(() => {
+    try {
+      const raw = localStorage.getItem("emsal_ik_forms");
+      return raw ? JSON.parse(raw) : { izin: [], avans: [] };
+    } catch (e) {
+      return { izin: [], avans: [] };
+    }
+  });
 
-  const addPerson = (p) => {
-    const id = personnel.length ? Math.max(...personnel.map((x) => x.id)) + 1 : 1;
-    setPersonnel((s) => [...s, { ...p, id }]);
-  };
+  useEffect(() => { try { localStorage.setItem("emsal_personnel", JSON.stringify(personnel)); } catch (e) {} }, [personnel]);
+  useEffect(() => { try { localStorage.setItem("emsal_ik_forms", JSON.stringify(forms)); } catch (e) {} }, [forms]);
 
-  const updatePerson = (id, updates) => setPersonnel((s) => s.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+  function addPersonnel(p) {
+    setPersonnel((s) => [p, ...s]);
+  }
+  function updatePersonnel(id, patch) {
+    setPersonnel((s) => s.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  }
+  function removePersonnel(id) {
+    setPersonnel((s) => s.filter((x) => x.id !== id));
+  }
 
-  const removePerson = (id) => setPersonnel((s) => s.filter((p) => p.id !== id));
+  function submitIzin(form) {
+    setForms((s) => ({ ...s, izin: [form, ...s.izin] }));
+    // burada e-posta gönderimi server ile yapılmalı; frontend sadece kaydeder.
+  }
+  function submitAvans(form) {
+    setForms((s) => ({ ...s, avans: [form, ...s.avans] }));
+  }
 
-  return <IKContext.Provider value={{ personnel, addPerson, updatePerson, removePerson }}>{children}</IKContext.Provider>;
+  return (
+    <IKContext.Provider value={{ personnel, addPersonnel, updatePersonnel, removePersonnel, forms, submitIzin, submitAvans }}>
+      {children}
+    </IKContext.Provider>
+  );
 }
 
 export const useIK = () => useContext(IKContext);
