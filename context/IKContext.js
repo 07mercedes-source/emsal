@@ -1,60 +1,47 @@
 // context/IKContext.js
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 const IKContext = createContext(null);
-const KEY = "emsal_ik_personnel_v1";
+
+const samplePersonnel = Array.from({ length: 20 }).map((_, i) => ({
+  id: i + 1,
+  sicil: 1000 + i,
+  name: `Çalışan ${i + 1}`,
+  phone: `+49 170 000 ${100 + i}`,
+  address: `Berlin, Str ${i + 1}`,
+  restaurant: i % 2 === 0 ? "Restaurant 1" : "Restaurant 2",
+  position: i % 3 === 0 ? "Şef" : "Personel",
+  grossSalary: Math.round(2500 + Math.random() * 2000),
+  steuerKlasse: (i % 2) + 1,
+}));
 
 export function IKProvider({ children }) {
   const [personnel, setPersonnel] = useState([]);
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setPersonnel(JSON.parse(raw));
-      else {
-        // 20 örnek personel
-        const demo = Array.from({ length: 20 }, (_, i) => ({
-          id: 100 + i + 1,
-          name: `Personel ${i + 1}`,
-          registry: 1000 + i + 1,
-          address: `Adres ${i + 1}`,
-          phone: `+49 170 000 ${100 + i}`,
-          restaurant: i % 2 === 0 ? "Restaurant 1" : "Restaurant 2",
-          position: i % 3 === 0 ? "Garson" : i % 3 === 1 ? "Aşçı" : "Kasiyer",
-          salary: 2500 + i * 50,
-          steuerklasse: "1",
-          hireDate: "2024-01-01",
-          leaveDate: "",
-        }));
-        setPersonnel(demo);
-        localStorage.setItem(KEY, JSON.stringify(demo));
-      }
-    } catch (e) { console.error(e); }
+      const s = localStorage.getItem("emsal_personnel");
+      if (s) setPersonnel(JSON.parse(s));
+      else setPersonnel(samplePersonnel);
+    } catch (e) {
+      setPersonnel(samplePersonnel);
+    }
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(personnel)); } catch (e) {}
+    try { localStorage.setItem("emsal_personnel", JSON.stringify(personnel)); } catch (e) {}
   }, [personnel]);
 
   const addPerson = (p) => {
-    const newId = personnel.length ? Math.max(...personnel.map(x => x.id)) + 1 : 101;
-    const item = { id: newId, ...p };
-    setPersonnel([item, ...personnel]);
-    return item;
+    const id = personnel.length ? Math.max(...personnel.map((x) => x.id)) + 1 : 1;
+    setPersonnel((s) => [...s, { ...p, id }]);
   };
 
-  const updatePerson = (id, patch) => setPersonnel(personnel.map(p => p.id === id ? { ...p, ...patch } : p));
-  const removePerson = (id) => setPersonnel(personnel.filter(p => p.id !== id));
+  const updatePerson = (id, updates) => setPersonnel((s) => s.map((p) => (p.id === id ? { ...p, ...updates } : p)));
 
-  return (
-    <IKContext.Provider value={{ personnel, addPerson, updatePerson, removePerson }}>
-      {children}
-    </IKContext.Provider>
-  );
+  const removePerson = (id) => setPersonnel((s) => s.filter((p) => p.id !== id));
+
+  return <IKContext.Provider value={{ personnel, addPerson, updatePerson, removePerson }}>{children}</IKContext.Provider>;
 }
 
-export function useIK() {
-  const ctx = useContext(IKContext);
-  if (!ctx) return { personnel: [], addPerson: () => {}, updatePerson: () => {}, removePerson: () => {} };
-  return ctx;
-}
+export const useIK = () => useContext(IKContext);
