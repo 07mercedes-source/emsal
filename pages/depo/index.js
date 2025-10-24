@@ -1,56 +1,61 @@
 // pages/depo/index.js
-import React from "react";
+import React, { useState } from "react";
 import { useDepo } from "../../context/DepoContext";
-import { useLanguage } from "../../context/LanguageContext";
+import { useAuth } from "../../context/AuthContext";
 
 export default function DepoPage() {
   const { products, addProduct, updateProduct, removeProduct } = useDepo();
-  const { t } = useLanguage();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
-  const handleAdd = () => {
-    addProduct({ name: "", stock: 0, unit: "adet", cost: "0.00", expiry: "" });
+  const [newRow, setNewRow] = useState({ name: "", unit: "", stock: 0, cost: 0, expiry: "" });
+
+  const saveNew = () => {
+    if (!newRow.name) return alert("İsim girin");
+    addProduct(newRow);
+    setNewRow({ name: "", unit: "", stock: 0, cost: 0, expiry: "" });
   };
 
+  const handleUpdate = (id, key, val) => updateProduct(id, { [key]: val });
+
   return (
-    <div>
-      <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>{t("products")}</h2>
-
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-        <button onClick={handleAdd} style={{ padding: "8px 12px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 8 }}>➕ Yeni Ürün Ekle</button>
-        <div>
-          {/* Btns: teslim/sevk - açılması için başka sayfalara yönlendir veya modal ekle */}
-          <button style={{ padding: "8px 12px", marginRight: 8, background: "#10b981", color: "#fff", border: "none", borderRadius: 8 }}>📥 Teslim Alma</button>
-          <button style={{ padding: "8px 12px", background: "#fb923c", color: "#fff", border: "none", borderRadius: 8 }}>🚚 Sevk Et</button>
+    <div className="container">
+      <div className="card">
+        <h3>Ürün Listesi</h3>
+        <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+          <button className="big-btn">Ürün Teslim Al</button>
+          <button className="big-btn" style={{ background: "#ff8c00" }}>Sevk Et</button>
+          <button className="big-btn" style={{ background: "#06b6d4" }}>Rapor</button>
         </div>
-      </div>
 
-      <div style={{ overflowX: "auto", background: "#fff", borderRadius: 8 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead style={{ background: "#f1f5f9" }}>
-            <tr>
-              <th style={{ padding: 12 }}>ID</th>
-              <th style={{ padding: 12 }}>Ürün Adı</th>
-              <th style={{ padding: 12 }}>Stok</th>
-              <th style={{ padding: 12 }}>Birim</th>
-              <th style={{ padding: 12 }}>Maliyet (€)</th>
-              <th style={{ padding: 12 }}>Son Kullanma</th>
-              <th style={{ padding: 12 }}>Aksiyon</th>
-            </tr>
+        <table className="table">
+          <thead>
+            <tr><th>ID</th><th>Ürün Adı</th><th>Birim</th><th>Stok</th><th>Maliyet (€)</th><th>SKT</th><th>İşlem</th></tr>
           </thead>
           <tbody>
-            {products.map(p => (
-              <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
-                <td style={{ padding: 10 }}>{p.id}</td>
-                <td style={{ padding: 10 }}><input value={p.name} onChange={(e) => updateProduct(p.id, { name: e.target.value })} /></td>
-                <td style={{ padding: 10 }}><input type="number" value={p.stock} onChange={(e) => updateProduct(p.id, { stock: Number(e.target.value) })} style={{ width: 90 }} /></td>
-                <td style={{ padding: 10 }}><input value={p.unit} onChange={(e) => updateProduct(p.id, { unit: e.target.value })} style={{ width: 80 }} /></td>
-                <td style={{ padding: 10 }}><input value={p.cost} onChange={(e) => updateProduct(p.id, { cost: e.target.value })} style={{ width: 90 }} /></td>
-                <td style={{ padding: 10 }}><input type="date" value={p.expiry || ""} onChange={(e) => updateProduct(p.id, { expiry: e.target.value })} /></td>
-                <td style={{ padding: 10 }}>
-                  <button onClick={() => removeProduct(p.id)} style={{ background: "#ef4444", color: "#fff", border: "none", padding: "6px 8px", borderRadius: 6 }}>🗑️</button>
-                </td>
+            {products.map((p) => (
+              <tr key={p.id}>
+                <td>{p.id}</td>
+                <td><input style={{ width: 220 }} value={p.name} onChange={(e) => handleUpdate(p.id, "name", e.target.value)} /></td>
+                <td><input style={{ width: 80 }} value={p.unit} onChange={(e) => handleUpdate(p.id, "unit", e.target.value)} /></td>
+                <td><input style={{ width: 80 }} type="number" value={p.stock} onChange={(e) => handleUpdate(p.id, "stock", Number(e.target.value))} /></td>
+                <td><input style={{ width: 90 }} type="number" value={p.cost} onChange={(e) => handleUpdate(p.id, "cost", Number(e.target.value))} /></td>
+                <td><input style={{ width: 120 }} value={p.expiry} onChange={(e) => handleUpdate(p.id, "expiry", e.target.value)} /></td>
+                <td>{isAdmin && <button onClick={() => removeProduct(p.id)}>Sil</button>}</td>
               </tr>
             ))}
+
+            {isAdmin && (
+              <tr>
+                <td>—</td>
+                <td><input style={{ width: 220 }} value={newRow.name} onChange={(e) => setNewRow({ ...newRow, name: e.target.value })} /></td>
+                <td><input style={{ width: 80 }} value={newRow.unit} onChange={(e) => setNewRow({ ...newRow, unit: e.target.value })} /></td>
+                <td><input style={{ width: 80 }} type="number" value={newRow.stock} onChange={(e) => setNewRow({ ...newRow, stock: Number(e.target.value) })} /></td>
+                <td><input style={{ width: 90 }} type="number" value={newRow.cost} onChange={(e) => setNewRow({ ...newRow, cost: Number(e.target.value) })} /></td>
+                <td><input style={{ width: 120 }} value={newRow.expiry} onChange={(e) => setNewRow({ ...newRow, expiry: e.target.value })} /></td>
+                <td><button onClick={saveNew}>Kaydet</button></td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
