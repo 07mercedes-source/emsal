@@ -1,100 +1,70 @@
 // pages/restaurant/[id].js
 import { useRouter } from "next/router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRestaurant } from "../../context/RestaurantContext";
+import { useAuth } from "../../context/AuthContext";
 
 export default function RestaurantPage() {
   const router = useRouter();
-  const { id } = router.query; // '1' veya '2'
-  const { movements, addMovement, removeMovement } = useRestaurant();
+  const { id } = router.query;
+  const rid = Number(id || 1);
+  const { entries, addEntry, getByRestaurantAndMonth } = useRestaurant();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
-  // seçili ay/yıl state
-  const now = new Date();
-  const [selYear, setSelYear] = useState(now.getFullYear());
-  const [selMonth, setSelMonth] = useState(now.getMonth() + 1);
+  const [monthYear, setMonthYear] = useState({ month: (new Date()).getMonth() + 1, year: (new Date()).getFullYear() });
+  const [newRow, setNewRow] = useState({ date: new Date().toISOString().slice(0,10), type: "gelir", description: "", amount: 0 });
 
-  const monthKey = (y, m) => `${y}-${String(m).padStart(2, "0")}`;
+  useEffect(() => {
+    if (id) {
+      // adjust nothing; just reactive
+    }
+  }, [id]);
 
-  // filtre: seçili ay
-  const filtered = useMemo(() => {
-    if (!id) return [];
-    const mk = monthKey(selYear, selMonth);
-    return (movements || []).filter(m => String(m.restaurant) === String(id) && m.date.startsWith(mk));
-  }, [movements, id, selYear, selMonth]);
+  const list = getByRestaurantAndMonth(rid, monthYear.month, monthYear.year);
+  const totals = list.reduce((acc, e) => {
+    if (e.type === "gelir") acc.gelir += Number(e.amount || 0);
+    else acc.gider += Number(e.amount || 0);
+    return acc;
+  }, { gelir: 0, gider: 0 });
+  totals.net = totals.gelir - totals.gider;
 
-  const totals = useMemo(() => {
-    const sum = filtered.reduce((s, it) => it.type === "gelir" ? s + Number(it.amount) : s - Number(it.amount), 0);
-    const gelir = filtered.filter(x => x.type === "gelir").reduce((s, x) => s + Number(x.amount), 0);
-    const gider = filtered.filter(x => x.type === "gider").reduce((s, x) => s + Number(x.amount), 0);
-    return { net: sum, gelir, gider };
-  }, [filtered]);
-
-  const handleAdd = (type) => {
-    const today = new Date();
-    const item = {
-      date: today.toISOString().slice(0, 10),
-      description: type === "gelir" ? "Gelir" : "Gider",
-      amount: type === "gelir" ? 0 : 0,
-      type,
-      restaurant: String(id),
-    };
-    addMovement(item);
+  const add = () => {
+    addEntry({ restaurant: rid, date: newRow.date, type: newRow.type, description: newRow.description, amount: Number(newRow.amount) });
+    setNewRow({ ...newRow, description: "", amount: 0 });
   };
 
   return (
-    <div>
-      <h2 style={{ fontWeight: 800 }}>Restaurant {id}</h2>
-
-      <div style={{ display: "flex", gap: 12, alignItems: "center", margin: "12px 0" }}>
-        <div>
-          <label>Ay:</label>
-          <select value={selMonth} onChange={(e) => setSelMonth(Number(e.target.value))} style={{ marginLeft: 8 }}>
-            {Array.from({ length: 12 }).map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
-          </select>
+    <div className="container">
+      <div className="card">
+        <h3>Restaurant {rid}</h3>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
+          <label>Ay</label>
+          <input type="number" value={monthYear.month} onChange={(e) => setMonthYear({...monthYear, month: Number(e.target.value)})} min={1} max={12}/>
+          <label>Yıl</label>
+          <input type="number" value={monthYear.year} onChange={(e) => setMonthYear({...monthYear, year: Number(e.target.value)})} min={2000}/>
+          <div style={{ marginLeft: "auto", fontWeight: 700 }}>
+            Gelir: €{totals.gelir.toLocaleString()} — Gider: €{totals.gider.toLocaleString()} — Net: €{totals.net.toLocaleString()}
+          </div>
         </div>
 
-        <div>
-          <label>Yıl:</label>
-          <select value={selYear} onChange={(e) => setSelYear(Number(e.target.value))} style={{ marginLeft: 8 }}>
-            {Array.from({ length: 6 }).map((_, i) => <option key={i} value={2023 + i}>{2023 + i}</option>)}
-          </select>
-        </div>
-
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button onClick={() => handleAdd("gelir")} style={{ background: "#10b981", color: "#fff", padding: "8px 12px", borderRadius: 8 }}>➕ Gelir Ekle</button>
-          <button onClick={() => handleAdd("gider")} style={{ background: "#fb923c", color: "#fff", padding: "8px 12px", borderRadius: 8 }}>➖ Gider Ekle</button>
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 12 }}>
-        <strong>Toplam Gelir: €{Number(totals.gelir).toLocaleString("de-DE")}</strong> &nbsp;
-        <strong>Toplam Gider: €{Number(totals.gider).toLocaleString("de-DE")}</strong> &nbsp;
-        <strong>Net: €{Number(totals.net).toLocaleString("de-DE")}</strong>
-      </div>
-
-      <div style={{ overflowX: "auto", background: "#fff", borderRadius: 8 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead style={{ background: "#f8fafc" }}>
-            <tr>
-              <th style={{ padding: 10 }}>Tarih</th>
-              <th style={{ padding: 10 }}>Açıklama</th>
-              <th style={{ padding: 10 }}>Tutar (€)</th>
-              <th style={{ padding: 10 }}>Tip</th>
-              <th style={{ padding: 10 }}>Sil</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(r => (
-              <tr key={r.id} style={{ borderTop: "1px solid #eee" }}>
-                <td style={{ padding: 10 }}>{r.date}</td>
-                <td style={{ padding: 10 }}>{r.description}</td>
-                <td style={{ padding: 10 }}>{Number(r.amount).toLocaleString("de-DE")}</td>
-                <td style={{ padding: 10 }}>{r.type}</td>
-                <td style={{ padding: 10 }}><button onClick={() => removeMovement(r.id)} style={{ background: "#ef4444", color: "#fff", border: "none", padding: "6px 8px", borderRadius: 6 }}>🗑️</button></td>
-              </tr>
-            ))}
-          </tbody>
+        <table className="table">
+          <thead><tr><th>Tarih</th><th>Açıklama</th><th>Tür</th><th> Tutar (€)</th></tr></thead>
+          <tbody>{list.map(r => <tr key={r.id}><td>{r.date}</td><td>{r.description}</td><td>{r.type}</td><td>{r.amount}</td></tr>)}</tbody>
         </table>
+
+        {isAdmin && (
+          <div style={{ marginTop: 12 }}>
+            <h4>Yeni Kayıt Ekle</h4>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input type="date" value={newRow.date} onChange={(e)=>setNewRow({...newRow,date:e.target.value})}/>
+              <select value={newRow.type} onChange={(e)=>setNewRow({...newRow,type:e.target.value})}><option value="gelir">Gelir</option><option value="gider">Gider</option></select>
+              <input placeholder="Açıklama" value={newRow.description} onChange={(e)=>setNewRow({...newRow,description:e.target.value})}/>
+              <input type="number" placeholder="Tutar" value={newRow.amount} onChange={(e)=>setNewRow({...newRow,amount:Number(e.target.value)})}/>
+              <button onClick={add}>Ekle</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
