@@ -1,21 +1,15 @@
 // pages/_app.js
 import "../styles/globals.css";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
-import Layout from "../components/Layout";
 import { AuthProvider } from "../context/AuthContext";
-import { IKProvider } from "../context/IKContext";
-import { DepoProvider } from "../context/DepoContext";
-import { RestaurantProvider } from "../context/RestaurantContext";
 import { LanguageProvider } from "../context/LanguageContext";
+import { DepoProvider } from "../context/DepoContext";
+import { IKProvider } from "../context/IKContext";
+import { RestaurantProvider } from "../context/RestaurantContext";
+import Layout from "../components/Layout";
 
 function MyApp({ Component, pageProps }) {
-  const router = useRouter();
-
-  // router may be undefined during SSR; return null until ready
-  if (typeof window === "undefined") return <Component {...pageProps} />; // SSR safe fallback
-  if (!router?.isReady) return null;
-
+  // dynamic export with ssr false prevents some hydration issues in your environment
   return (
     <AuthProvider>
       <LanguageProvider>
