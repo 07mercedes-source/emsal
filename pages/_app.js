@@ -1,6 +1,7 @@
 // pages/_app.js
 import "../styles/globals.css";
 import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "../components/Layout";
 import { AuthProvider } from "../context/AuthContext";
@@ -11,9 +12,14 @@ import { LanguageProvider } from "../context/LanguageContext";
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
+  const [ready, setReady] = useState(false);
 
-  // router.isReady kontrolü: Next.js 13–14'te güvenli yöntem
-  if (!router.isReady) return null;
+  // isReady yerine güvenli kontrol
+  useEffect(() => {
+    if (router.isReady) setReady(true);
+  }, [router.isReady]);
+
+  if (!ready) return null; // yüklenmeden önce boş döner
 
   return (
     <AuthProvider>
@@ -32,5 +38,5 @@ function MyApp({ Component, pageProps }) {
   );
 }
 
-// SSR kapatıyoruz (bazı context’lerde hydration sorunu çözülür)
+// SSR kapalı
 export default dynamic(() => Promise.resolve(MyApp), { ssr: false });
