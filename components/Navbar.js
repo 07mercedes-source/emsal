@@ -7,7 +7,11 @@ import { useLanguage } from "../context/LanguageContext";
 export default function Navbar() {
   const router = useRouter();
   const { user, logout } = useAuth() || { user: null, logout: () => {} };
-  const { t, setLang, lang } = useLanguage() || { t: (x) => x, setLang: () => {}, lang: "tr" };
+  const { t, setLang, lang } = useLanguage() || {
+    t: (x) => x,
+    setLang: () => {},
+    lang: "tr",
+  };
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -34,6 +38,9 @@ export default function Navbar() {
     fontWeight: 600,
   };
 
+  // router.isReady kontrolünü güvenli hale getiriyoruz:
+  const isRouterReady = typeof router !== "undefined" && router.isReady;
+
   return (
     <nav
       style={{
@@ -48,7 +55,7 @@ export default function Navbar() {
         zIndex: 1100,
       }}
     >
-      {/* Sol taraf - Logo */}
+      {/* Sol taraf */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div
           style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
@@ -71,7 +78,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Orta - Menü */}
+      {/* Orta menü */}
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <Link href="/"><button style={navBtn}>{t("home")}</button></Link>
         <Link href="/depo"><button style={navBtn}>{t("depo")}</button></Link>
@@ -80,12 +87,12 @@ export default function Navbar() {
         <button style={navBtn} onClick={() => router.push("/restaurant/2")}>Restaurant 2</button>
       </div>
 
-      {/* Sağ taraf - Kullanıcı + Dil + Saat */}
+      {/* Sağ taraf */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ color: "#9fb2ff", fontWeight: 600 }}>
           {user
             ? `${user.name} • ${user.role || "Personel"}`
-            : router?.isReady
+            : isRouterReady
             ? ""
             : "Yükleniyor..."}
         </div>
@@ -94,7 +101,7 @@ export default function Navbar() {
           {time.toLocaleString("de-DE", { hour12: false })}
         </div>
 
-        {/* Dil seçimi */}
+        {/* Diller */}
         <div style={{ display: "flex", gap: 6 }}>
           <button
             style={{
