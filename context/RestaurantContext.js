@@ -1,57 +1,45 @@
 // context/RestaurantContext.js
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 const RestaurantContext = createContext(null);
-const KEY = "emsal_restaurant_movements_v1";
 
-/*
-  restaurant data shape:
-  { id, date (YYYY-MM-DD), description, amount, type: 'gelir'|'gider', restaurant: '1'|'2' }
-*/
+const sampleEntries = [
+  // {id, restaurant:1/2, date: 'YYYY-MM-DD', type: 'gelir'|'gider', description, amount}
+  { id: 1, restaurant: 1, date: "2025-10-01", type: "gelir", description: "Günlük ciro", amount: 12000 },
+  { id: 2, restaurant: 1, date: "2025-10-01", type: "gider", description: "İçecek gideri", amount: 100 },
+  { id: 3, restaurant: 2, date: "2025-10-02", type: "gelir", description: "Günlük ciro", amount: 8000 },
+];
 
 export function RestaurantProvider({ children }) {
-  const [movements, setMovements] = useState([]);
+  const [entries, setEntries] = useState([]);
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setMovements(JSON.parse(raw));
-      else {
-        // örnek bazı hareketler
-        const demo = [
-          { id: 1, date: "2025-09-01", description: "Ciro", amount: 20000, type: "gelir", restaurant: "1" },
-          { id: 2, date: "2025-09-01", description: "İçecek Gideri", amount: 100, type: "gider", restaurant: "1" },
-          { id: 3, date: "2025-09-05", description: "Ciro", amount: 8000, type: "gelir", restaurant: "2" },
-        ];
-        setMovements(demo);
-        localStorage.setItem(KEY, JSON.stringify(demo));
-      }
-    } catch (e) { console.error(e); }
+      const s = localStorage.getItem("emsal_rest_entries");
+      if (s) setEntries(JSON.parse(s));
+      else setEntries(sampleEntries);
+    } catch (e) {
+      setEntries(sampleEntries);
+    }
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(movements)); } catch (e) {}
-  }, [movements]);
+    try { localStorage.setItem("emsal_rest_entries", JSON.stringify(entries)); } catch (e) {}
+  }, [entries]);
 
-  const addMovement = (m) => {
-    const newId = movements.length ? Math.max(...movements.map(x => x.id)) + 1 : 1;
-    const item = { id: newId, ...m };
-    setMovements([item, ...movements]);
-    return item;
+  const addEntry = (entry) => {
+    const id = entries.length ? Math.max(...entries.map((x) => x.id)) + 1 : 1;
+    setEntries((s) => [...s, { ...entry, id }]);
   };
 
-  const removeMovement = (id) => setMovements(movements.filter(m => m.id !== id));
-  const updateMovement = (id, patch) => setMovements(movements.map(m => m.id === id ? { ...m, ...patch } : m));
+  const getByRestaurantAndMonth = (restaurant, month, year) => {
+    return entries.filter((e) => {
+      const d = new Date(e.date);
+      return e.restaurant === restaurant && d.getMonth() + 1 === month && d.getFullYear() === year;
+    });
+  };
 
-  return (
-    <RestaurantContext.Provider value={{ movements, addMovement, removeMovement, updateMovement }}>
-      {children}
-    </RestaurantContext.Provider>
-  );
+  return <RestaurantContext.Provider value={{ entries, addEntry, getByRestaurantAndMonth }}>{children}</RestaurantContext.Provider>;
 }
 
-export function useRestaurant() {
-  const ctx = useContext(RestaurantContext);
-  if (!ctx) return { movements: [], addMovement: () => {}, removeMovement: () => {}, updateMovement: () => {} };
-  return ctx;
-}
+export const useRestaurant = () => useContext(RestaurantContext);
