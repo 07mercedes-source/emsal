@@ -1,46 +1,51 @@
 // pages/depo/rapor.js
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDepo } from "../../context/DepoContext";
 
-function downloadCSV(filename, rows) {
-  const csv = rows.map(r => Object.values(r).map(v => `"${(v ?? "").toString().replace(/"/g,'""')}"`).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-}
+export default function DepoRapor() {
+  const { urunler } = useDepo();
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
 
-export default function Rapor() {
-  const { getHistoryBetween, history } = useDepo();
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
+  // Bu demo sürümünde, depo değişikliklerine göre örnek rapor çıkar (gerçek log sistemi yok).
+  const handleExcel = async () => {
+    const XLSX = (await import("xlsx")).default;
+    const data = urunler.map(u => ({ ID: u.id, Ad: u.ad, Kategori: u.kategori, Stok: u.stok, Birim: u.birim, Maliyet: u.maliyet }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Depo");
+    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const { saveAs } = await import("file-saver");
+    const blob = new Blob([buf], { type: "application/octet-stream" });
+    saveAs(blob, `depo-rapor-${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
 
-  function handleExport() {
-    const rows = getHistoryBetween(start, end).map(h => ({
-      date: h.date,
-      type: h.type,
-      details: JSON.stringify(h.items || h),
-    }));
-    downloadCSV("depo_rapor.csv", [["date","type","details"], ...rows.map(r => [r.date, r.type, r.details])]);
-    alert("CSV indirildi");
-  }
+  const handlePdf = async () => {
+    const jsPDF = (await import("jspdf")).default;
+    const autoTable = (await import("jspdf-autotable")).default;
+    const doc = new jsPDF();
+    doc.text("Depo Raporu", 14, 16);
+    const rows = urunler.map(u => [u.id.slice(0,8), u.ad, u.kategori, u.stok, u.birim, Number(u.maliyet).toFixed(2)]);
+    autoTable(doc, { head: [["ID","Ad","Kategori","Stok","Birim","Maliyet"]], body: rows, startY: 22 });
+    doc.save(`depo-rapor-${new Date().toISOString().slice(0,10)}.pdf`);
+  };
 
   return (
-    <div>
-      <h1>Depo Raporları</h1>
-      <div style={{ display: "flex", gap: 8 }}>
-        <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
-        <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
-        <button onClick={handleExport}>CSV İndir</button>
+    <div style={{ padding: 20 }}>
+      <h2>Depo Raporları</h2>
+      <div style={{ marginBottom: 12 }}>
+        <label>Başlangıç</label>
+        <input type="date" value={from} onChange={(e)=>setFrom(e.target.value)} />
+        <label style={{ marginLeft: 8 }}>Bitiş</label>
+        <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} />
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <h3>Son Hareketler</h3>
-        <ul>
-          {history.slice(0, 50).map((h, i) => <li key={i}>{h.date} • {h.type} • {JSON.stringify(h.items || h)}</li>)}
-        </ul>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={handleExcel} style={btn}>📥 Excel İndir</button>
+        <button onClick={handlePdf} style={btn}>📄 PDF İndir</button>
       </div>
     </div>
   );
 }
+
+const btn = { padding: "8px 12px", background:"#0ea5e9", color:"#fff", border:"none", borderRadius:6 };
