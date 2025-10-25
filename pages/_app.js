@@ -1,6 +1,6 @@
 // pages/_app.js
-import "../styles/globals.css";
 import dynamic from "next/dynamic";
+import "../styles/globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { IKProvider } from "../context/IKContext";
 import { DepoProvider } from "../context/DepoContext";
