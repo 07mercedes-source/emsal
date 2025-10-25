@@ -1,35 +1,43 @@
 // components/RightPanel.js
-import React from "react";
-import { useRestaurant } from "../context/RestaurantContext";
+import React, { useEffect, useState } from "react";
+import { useRestaurantData } from "../context/RestaurantContext";
 
 export default function RightPanel() {
-  const { restaurant1, restaurant2, totalsByMonth } = useRestaurant();
-  const today = new Date();
-  const month = today.getMonth() + 1;
-  const year = today.getFullYear();
+  const { restaurant1, restaurant2 } = useRestaurantData();
+  const [berlinWeather] = useState({ temp: 18, text: "Açık" });
+  const [month, setMonth] = useState("");
+  const [r1Total, setR1Total] = useState(0);
+  const [r2Total, setR2Total] = useState(0);
 
-  const totals1 = totalsByMonth("1", month, year);
-  const totals2 = totalsByMonth("2", month, year);
+  useEffect(() => {
+    const now = new Date();
+    setMonth(now.toLocaleString("tr-TR", { month: "long", year: "numeric" }));
+  }, []);
+
+  useEffect(() => {
+    // toplam geliri sadece client-side hesapla
+    const sum = (arr) => arr.filter(a => a.type === "revenue").reduce((s, e) => s + (e.amount || 0), 0);
+    setR1Total(sum(restaurant1 || []));
+    setR2Total(sum(restaurant2 || []));
+  }, [restaurant1, restaurant2]);
 
   return (
-    <aside style={{ width: 280, padding: 16, borderLeft: "1px solid #e6eef8", background: "#f8fafc", position: "sticky", top: 64, height: "calc(100vh - 64px)", overflowY: "auto" }}>
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontWeight: 700 }}>🌤️ Berlin Hava Durumu</div>
-        <div>18°C, Açık</div>
+    <aside className="w-72 fixed right-0 top-16 h-[calc(100vh-88px)] p-4 bg-white border-l overflow-auto">
+      <div className="mb-4">
+        <h3 className="font-semibold">🌤️ Berlin Hava Durumu</h3>
+        <div className="text-sm">{berlinWeather.temp}°C, {berlinWeather.text}</div>
       </div>
 
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontWeight: 700 }}>📅 Takvim</div>
-        <div style={{ marginTop: 8 }}>{today.toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div>
+      <div className="mb-4">
+        <h3 className="font-semibold">📅 Aylık Takvim</h3>
+        <div className="text-sm">{month}</div>
       </div>
 
       <div>
-        <div style={{ fontWeight: 700 }}>📊 Restaurant Ciro (Aktif Ay)</div>
-        <div style={{ marginTop: 8 }}>
-          <div>Restaurant 1: €{totals1?.income?.toLocaleString() || 0}</div>
-          <div>Restaurant 2: €{totals2?.income?.toLocaleString() || 0}</div>
-          <div style={{ marginTop: 8, fontWeight: 700 }}>Toplam: €{((totals1?.income || 0) + (totals2?.income || 0)).toLocaleString()}</div>
-        </div>
+        <h3 className="font-semibold">📊 Restaurant Ciro (Bu Ay)</h3>
+        <div className="mt-2 text-sm">Restaurant 1: €{r1Total.toLocaleString('de-DE')}</div>
+        <div className="text-sm">Restaurant 2: €{r2Total.toLocaleString('de-DE')}</div>
+        <div className="text-sm mt-2 font-medium">Toplam: €{(r1Total + r2Total).toLocaleString('de-DE')}</div>
       </div>
     </aside>
   );
