@@ -2,33 +2,33 @@
 import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ ok: false, msg: "Method not allowed" });
+  if (req.method !== "POST") return res.status(405).end();
+  const { to = "07mercedes@gmail.com", subject = "Form", html } = req.body;
 
-  const { to, subject, text, html } = req.body;
-  if (!to || !subject) return res.status(400).json({ ok: false, msg: "Eksik parametre" });
+  // Gerekli: Vercel üzerinde env ayarları yap (örnek aşağı)
+  // process.env.SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
 
   try {
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: Number(process.env.SMTP_PORT || 465),
-      secure: process.env.SMTP_SECURE !== "false",
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: false,
       auth: {
-        user: process.env.GMAIL_USER || process.env.SMTP_USER,
-        pass: process.env.GMAIL_PASS || process.env.SMTP_PASS
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
       }
     });
 
     await transporter.sendMail({
-      from: `"EMSAL GmbH" <${process.env.GMAIL_USER || process.env.SMTP_USER}>`,
+      from: `"Emsal Panel" <${process.env.SMTP_USER}>`,
       to,
       subject,
-      text,
       html
     });
 
-    return res.status(200).json({ ok: true, msg: "Gönderildi" });
+    res.json({ ok: true });
   } catch (err) {
-    console.error("sendMail error:", err);
-    return res.status(500).json({ ok: false, error: err.message });
+    console.error(err);
+    res.status(500).json({ ok: false, error: err.message });
   }
 }
