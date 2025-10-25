@@ -1,44 +1,57 @@
 // context/RestaurantContext.js
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 const RestaurantContext = createContext(null);
 
+const SAMPLE = {
+  r1: [
+    { id: uuidv4(), date: "2026-01-01", type: "income", description: "Günlük ciro", amount: 20000 },
+    { id: uuidv4(), date: "2026-01-01", type: "expense", description: "İçecek gideri", amount: 100 }
+  ],
+  r2: []
+};
+
 export function RestaurantProvider({ children }) {
-  // store as {id: '1'|'2', entries: [{date, type: 'income'|'expense', description, amount}] }
-  const [data, setData] = useState(() => {
-    try {
-      const raw = localStorage.getItem("emsal_restaurant");
-      return raw ? JSON.parse(raw) : {
-        "1": { entries: [] },
-        "2": { entries: [] },
-      };
-    } catch (e) {
-      return { "1": { entries: [] }, "2": { entries: [] } };
-    }
-  });
+  const [restaurant1, setR1] = useState([]);
+  const [restaurant2, setR2] = useState([]);
 
-  useEffect(() => { try { localStorage.setItem("emsal_restaurant", JSON.stringify(data)); } catch (e) {} }, [data]);
+  useEffect(() => {
+    const r1 = JSON.parse(localStorage.getItem("emsal_r1") || "null");
+    const r2 = JSON.parse(localStorage.getItem("emsal_r2") || "null");
+    setR1(r1 || SAMPLE.r1);
+    setR2(r2 || SAMPLE.r2);
+  }, []);
 
-  function addEntry(restaurantId, entry) {
-    setData((d) => ({ ...d, [restaurantId]: { entries: [entry, ...(d[restaurantId]?.entries || [])] } }));
-  }
+  useEffect(() => { localStorage.setItem("emsal_r1", JSON.stringify(restaurant1)); }, [restaurant1]);
+  useEffect(() => { localStorage.setItem("emsal_r2", JSON.stringify(restaurant2)); }, [restaurant2]);
 
-  function getMonthTotals(restaurantId, year, month) {
-    const entries = data[restaurantId]?.entries || [];
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 0, 23, 59, 59);
-    let income = 0, expense = 0;
-    entries.forEach((e) => {
-      const d = new Date(e.date);
-      if (d >= start && d <= end) {
-        if (e.type === "income") income += Number(e.amount);
-        else expense += Number(e.amount);
-      }
+  const addRecord = (restaurantId, record) => {
+    const rec = { ...record, id: uuidv4() };
+    if (restaurantId === "1") setR1(prev => [rec, ...prev]);
+    else setR2(prev => [rec, ...prev]);
+  };
+
+  const getByMonth = (restaurantId, month, year) => {
+    const arr = (restaurantId === "1") ? restaurant1 : restaurant2;
+    return arr.filter(r => {
+      const d = new Date(r.date);
+      return d.getMonth() + 1 === Number(month) && d.getFullYear() === Number(year);
     });
-    return { income, expense, net: income - expense };
-  }
+  };
 
-  return <RestaurantContext.Provider value={{ data, addEntry, getMonthTotals }}>{children}</RestaurantContext.Provider>;
+  const totalsByMonth = (restaurantId, month, year) => {
+    const items = getByMonth(restaurantId, month, year);
+    const income = items.filter(i => i.type === "income").reduce((s, it) => s + Number(it.amount || 0), 0);
+    const expense = items.filter(i => i.type === "expense").reduce((s, it) => s + Number(it.amount || 0), 0);
+    return { income, expense, net: income - expense };
+  };
+
+  return (
+    <RestaurantContext.Provider value={{ restaurant1, restaurant2, addRecord, getByMonth, totalsByMonth }}>
+      {children}
+    </RestaurantContext.Provider>
+  );
 }
 
 export const useRestaurant = () => useContext(RestaurantContext);
