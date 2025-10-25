@@ -1,37 +1,36 @@
 // pages/login.js
 import { useState } from "react";
-import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
+import { useRouter } from "next/router";
 
 export default function LoginPage() {
-  const { user, login } = useAuth() || {};
+  const { login } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
 
-  async function handleSubmit(e) {
+  const handle = async (e) => {
     e?.preventDefault();
-    const ok = login(username.trim(), password);
-    if (!ok) setErr("Kullanıcı adı veya şifre hatalı");
+    const res = login(username.trim(), password.trim());
+    if (!res.ok) setErr(res.msg);
     else router.push("/");
-  }
-
-  // eğer zaten girişli ise anasayfaya gönder
-  if (user) {
-    router.push("/");
-    return null;
-  }
+  };
 
   return (
-    <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <form onSubmit={handleSubmit} style={{ width: 360, background: "#fff", padding: 24, borderRadius: 10 }}>
-        <h2 style={{ marginBottom: 10 }}>EMSAL Panel Giriş</h2>
-        <input placeholder="Kullanıcı Adı" value={username} onChange={(e) => setUsername(e.target.value)} style={{ width: "100%", padding: 8, marginBottom: 8 }} />
-        <input placeholder="Şifre" type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: "100%", padding: 8, marginBottom: 8 }} />
+    <div style={{ maxWidth: 420 }}>
+      <h2>Giriş</h2>
+      <form onSubmit={handle}>
+        <div style={{ marginBottom: 8 }}>
+          <input placeholder="Kullanıcı adı" value={username} onChange={e=>setUsername(e.target.value)} />
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <input placeholder="Şifre" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
+        </div>
         {err && <div style={{ color: "red", marginBottom: 8 }}>{err}</div>}
-        <button type="submit" style={{ width: "100%", padding: 10, background: "#0b1220", color: "#fff", border: "none", borderRadius: 6 }}>Giriş Yap</button>
+        <button type="submit">Giriş</button>
       </form>
+      <p style={{ marginTop: 12, color: "#666" }}>Not: Demo kullanıcıları arka planda hazır; ekrandan gösterilmiyor.</p>
     </div>
   );
 }
