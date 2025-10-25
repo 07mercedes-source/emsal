@@ -1,111 +1,65 @@
 // pages/depo/cikis.js
 import { useState } from "react";
 import { useDepo } from "../../context/DepoContext";
-import { useRouter } from "next/router";
+import { useRestaurantData } from "../../context/RestaurantContext";
 
-export default function Cikis() {
-  const router = useRouter();
-  const { urunler, stokGuncelle } = useDepo();
-  const [satirlar, setSatirlar] = useState([{ idSearch: "", adet: 1 }]);
-  const [restoran, setRestoran] = useState("1");
+export default function Sevk() {
+  const { urunler, updateUrun, pushHistory } = useDepo();
+  const { addEntry } = useRestaurantData();
+  const [lines, setLines] = useState([{ id: "", qty: 0 }]);
+  const [restaurant, setRestaurant] = useState("1");
 
-  const setSatir = (idx, v) => {
-    const s = [...satirlar];
-    s[idx] = { ...s[idx], ...v };
-    setSatirlar(s);
+  const setLine = (i, v) => {
+    setLines((s) => s.map((l, idx) => idx === i ? { ...l, ...v } : l));
   };
 
-  const urunBySearch = (txt) => urunler.find(u => u.id.startsWith(txt) || u.id === txt);
+  const addLine = () => setLines((s) => [...s, { id: "", qty: 0 }]);
 
-  const addRow = () => setSatirlar(p => [...p, { idSearch: "", adet: 1 }]);
-  const removeRow = (i) => setSatirlar(p => p.filter((_,idx)=>idx!==i));
+  const removeLine = (i) => setLines((s) => s.filter((_, idx)=>idx!==i));
 
-  const handleSevk = (e) => {
+  const submit = (e) => {
     e.preventDefault();
-    // stokları düş
-    for (const r of satirlar) {
-      const u = urunBySearch(r.idSearch);
-      if (!u) return alert("Ürün bulunamadı: " + r.idSearch);
-      if (u.stok < Number(r.adet)) return alert(`${u.ad} için yeterli stok yok`);
+    for (const l of lines) {
+      if (!l.id) continue;
+      const p = urunler.find(u => u.id.startsWith(l.id) || u.id === l.id);
+      if (!p) { alert(`Ürün bulunamadı: ${l.id}`); return; }
+      const newQty = p.miktar - Number(l.qty);
+      if (newQty < 0) { alert(`Yetersiz stok: ${p.ad}`); return; }
+      updateUrun(p.id, { miktar: newQty });
+      pushHistory({ action: "sevk", productId: p.id, qty: Number(l.qty), date: new Date().toISOString().slice(0,10), toRestaurant: restaurant });
+      // restaurant entry as revenue placeholder (you can refine)
+      addEntry(restaurant, { date: new Date().toISOString().slice(0,10), type: "expense", amount: 0, desc: `Sevk: ${p.ad} x${l.qty}` });
     }
-    // hepsi tamam ise stokları güncelle
-    for (const r of satirlar) {
-      const u = urunBySearch(r.idSearch);
-      stokGuncelle(u.id, -Math.abs(Number(r.adet)));
-    }
-    // basit irsaliye için yeni pencerede yazdırılabilir içerik aç
-    const html = generateIrsaliyeHtml(satirlar, urunler, restoran);
-    const w = window.open("", "_blank");
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    // otomatik print istersen: w.print();
-    router.push("/depo");
+    alert("Sevk gerçekleştirildi. İrsaliye yazdır için tarayıcı yazdır kullanın.");
+    setLines([{ id: "", qty: 0 }]);
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Sevk (Çıkış)</h2>
-      <form onSubmit={handleSevk}>
-        <div style={{ marginBottom: 12 }}>
-          Restoran:
-          <select value={restoran} onChange={(e)=>setRestoran(e.target.value)} style={{ marginLeft: 8 }}>
+    <div>
+      <h2 className="text-xl font-semibold mb-3">Sevk / Çıkış</h2>
+
+      <form onSubmit={submit} className="bg-white p-4 rounded shadow">
+        <div className="mb-3">
+          <label className="block mb-1">Hedef Restaurant</label>
+          <select value={restaurant} onChange={(e)=>setRestaurant(e.target.value)} className="p-2 border rounded">
             <option value="1">Restaurant 1</option>
             <option value="2">Restaurant 2</option>
           </select>
         </div>
 
-        {satirlar.map((s, i) => {
-          const u = urunBySearch(s.idSearch);
-          return (
-            <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-              <input placeholder="Ürün ID (kısmı)" value={s.idSearch} onChange={(e)=>setSatir(i,{idSearch:e.target.value})} />
-              <div style={{ minWidth: 220 }}>{u ? u.ad : "—"}</div>
-              <input type="number" value={s.adet} onChange={(e)=>setSatir(i,{adet:e.target.value})} style={{ width: 80 }} />
-              <button type="button" onClick={()=>removeRow(i)} style={{ background:"transparent", color:"red", border:"none" }}>Kaldır</button>
-            </div>
-          );
-        })}
+        {lines.map((l, i) => (
+          <div key={i} className="flex gap-2 mb-2">
+            <input value={l.id} onChange={(e)=>setLine(i, { id:e.target.value })} placeholder="Ürün ID (kısmi kabul edilir)" className="p-2 border rounded flex-1" />
+            <input value={l.qty} onChange={(e)=>setLine(i, { qty: Number(e.target.value) })} placeholder="Adet" type="number" className="p-2 border rounded w-28" />
+            <button type="button" onClick={()=>removeLine(i)} className="px-2 bg-red-500 text-white rounded">X</button>
+          </div>
+        ))}
 
-        <div style={{ marginTop: 8 }}>
-          <button type="button" onClick={addRow} style={{ marginRight: 8 }}>+ Satır Ekle</button>
-          <button type="submit" style={{ background:"#ff9800", color:"#fff", border:"none", padding:"8px 12px", borderRadius:6 }}>Sevk Et & Yazdır</button>
+        <div className="flex gap-2">
+          <button type="button" onClick={addLine} className="px-3 py-2 bg-amber-500 rounded">Yeni Satır</button>
+          <button className="px-3 py-2 bg-green-600 text-white rounded">Sevk Et</button>
         </div>
       </form>
     </div>
   );
-}
-
-function generateIrsaliyeHtml(satirlar, urunler, restoran) {
-  const now = new Date().toLocaleString();
-  const rows = satirlar.map(s => {
-    const u = urunler.find(x => x.id.startsWith(s.idSearch) || x.id === s.idSearch);
-    return `<tr>
-      <td>${u ? u.id : s.idSearch}</td>
-      <td>${u ? u.ad : "Bilinmeyen"}</td>
-      <td>${s.adet}</td>
-      <td>${u ? u.birim : ""}</td>
-    </tr>`;
-  }).join("");
-  return `
-    <html>
-      <head>
-        <title>Sevk İrsaliyesi</title>
-        <style>
-          body{font-family:Arial;padding:20px}
-          table{width:100%;border-collapse:collapse}
-          td,th{border:1px solid #ccc;padding:6px}
-        </style>
-      </head>
-      <body>
-        <h2>EMSAL GmbH - Sevk İrsaliyesi</h2>
-        <div>Restoran: ${restoran}</div>
-        <div>Tarih: ${now}</div>
-        <table>
-          <thead><tr><th>ID</th><th>Ürün</th><th>Adet</th><th>Birim</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </body>
-    </html>
-  `;
 }
