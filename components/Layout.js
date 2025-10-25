@@ -5,13 +5,13 @@ import RightPanel from "./RightPanel";
 
 export default function Layout({ children }) {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", flexDirection: "column" }}>
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
-      <div style={{ display: "flex", flex: 1 }}>
-        <main style={{ flex: 1, padding: "20px", marginRight: 300 }}>{children}</main>
+      <div className="flex flex-1">
+        <main className="flex-1 p-6 mr-72">{children}</main>
         <RightPanel />
       </div>
-      <footer style={{ textAlign: "center", padding: "12px 8px", background: "#f5f7fb", color: "#333" }}>
+      <footer className="text-center p-3 bg-white border-t">
         © {new Date().getFullYear()} EMSAL GmbH — Tüm hakları saklıdır.
       </footer>
     </div>
