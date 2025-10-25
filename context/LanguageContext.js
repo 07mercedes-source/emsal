@@ -4,75 +4,9 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 const LanguageContext = createContext(null);
 
 const translations = {
-  tr: {
-    home: "Anasayfa",
-    depo: "Depo",
-    ik: "İnsan Kaynakları",
-    login: "Giriş",
-    logout: "Çıkış",
-    restaurant: "Restaurant",
-    products: "Ürün Listesi",
-    personnel: "Personel Listesi",
-    add: "Ekle",
-    remove: "Sil",
-    edit: "Düzenle",
-    delivery: "Teslim Alma",
-    shipment: "Sevk Et",
-    reports: "Raporlar",
-    revenue: "Gelir",
-    expense: "Gider",
-    net: "Net",
-    filter: "Filtre",
-    all: "Tümü",
-    category: "Kategori",
-    search: "Ara"
-  },
-  en: {
-    home: "Home",
-    depo: "Warehouse",
-    ik: "Human Resources",
-    login: "Login",
-    logout: "Logout",
-    restaurant: "Restaurant",
-    products: "Products",
-    personnel: "Personnel",
-    add: "Add",
-    remove: "Remove",
-    edit: "Edit",
-    delivery: "Delivery",
-    shipment: "Shipment",
-    reports: "Reports",
-    revenue: "Revenue",
-    expense: "Expense",
-    net: "Net",
-    filter: "Filter",
-    all: "All",
-    category: "Category",
-    search: "Search"
-  },
-  de: {
-    home: "Startseite",
-    depo: "Lager",
-    ik: "Personal",
-    login: "Anmelden",
-    logout: "Abmelden",
-    restaurant: "Restaurant",
-    products: "Produkte",
-    personnel: "Personal",
-    add: "Hinzufügen",
-    remove: "Löschen",
-    edit: "Bearbeiten",
-    delivery: "Einlagerung",
-    shipment: "Versand",
-    reports: "Berichte",
-    revenue: "Einnahmen",
-    expense: "Ausgaben",
-    net: "Netto",
-    filter: "Filter",
-    all: "Alles",
-    category: "Kategorie",
-    search: "Suche"
-  }
+  tr: { home: "Anasayfa", depo: "Depo", ik: "İnsan Kaynakları", login: "Giriş", logout: "Çıkış", restaurant: "Restaurant", products: "Ürün Listesi", personnel: "Personel Listesi", add: "Ekle", remove: "Sil", edit: "Düzenle", reports: "Raporlar", deliver: "Teslim Al", ship: "Sevk Et" },
+  en: { home: "Home", depo: "Warehouse", ik: "HR", login: "Login", logout: "Logout", restaurant: "Restaurant", products: "Products", personnel: "Personnel", add: "Add", remove: "Remove", edit: "Edit", reports: "Reports", deliver: "Receive", ship: "Ship" },
+  de: { home: "Startseite", depo: "Lager", ik: "Personal", login: "Anmelden", logout: "Abmelden", restaurant: "Restaurant", products: "Produkte", personnel: "Personal", add: "Hinzufügen", remove: "Löschen", edit: "Bearbeiten", reports: "Berichte", deliver: "Annehmen", ship: "Versenden" },
 };
 
 export function LanguageProvider({ children }) {
@@ -80,8 +14,8 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     try {
-      const s = localStorage.getItem("emsal_lang");
-      if (s) setLang(s);
+      const l = localStorage.getItem("emsal_lang");
+      if (l) setLang(l);
     } catch (e) {}
   }, []);
 
