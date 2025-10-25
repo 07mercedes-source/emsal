@@ -5,9 +5,10 @@ const DepoContext = createContext(null);
 
 export const DepoProvider = ({ children }) => {
   const [urunler, setUrunler] = useState([
-    { id: uuidv4(), ad: "Et Ürünü", kategori: "Et", miktar: 20, birim: "kg" },
-    { id: uuidv4(), ad: "Alkol", kategori: "İçecek", miktar: 15, birim: "şişe" },
-    { id: uuidv4(), ad: "Kuru Gıda", kategori: "Gıda", miktar: 100, birim: "kg" },
+    { id: uuidv4(), ad: "Kırmızı Et", kategori: "Et", miktar: 20, birim: "kg" },
+    { id: uuidv4(), ad: "Beyaz Peynir", kategori: "Süt Ürünü", miktar: 50, birim: "kg" },
+    { id: uuidv4(), ad: "Şarap", kategori: "İçecek", miktar: 30, birim: "şişe" },
+    { id: uuidv4(), ad: "Un", kategori: "Kuru Gıda", miktar: 100, birim: "kg" }
   ]);
 
   const urunEkle = (urun) => setUrunler([...urunler, { ...urun, id: uuidv4() }]);
