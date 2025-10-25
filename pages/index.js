@@ -1,37 +1,27 @@
 // pages/index.js
-import { useRouter } from "next/router";
+import React from "react";
+import Link from "next/link";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuth } from "../context/AuthContext";
-import { useEffect } from "react";
 
 export default function Home() {
-  const router = useRouter();
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user } = useAuth() || {};
 
-  useEffect(() => {
-    // if not logged in, redirect to login
-    if (!user) router.push("/login");
-  }, [user, router]);
-
-  if (!user) return null;
+  const box = { width: 240, height: 120, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, cursor: "pointer", boxShadow: "0 6px 18px rgba(12, 74, 180, 0.06)" };
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-4">{t("home")}</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-6 bg-white rounded shadow hover:bg-slate-50 cursor-pointer" onClick={() => router.push('/depo')}>
-          <h3 className="font-semibold">Depo</h3>
-          <p className="text-sm">Stok ve sevk süreçleri</p>
-        </div>
-        <div className="p-6 bg-white rounded shadow hover:bg-slate-50 cursor-pointer" onClick={() => router.push('/ik')}>
-          <h3 className="font-semibold">İnsan Kaynakları</h3>
-          <p className="text-sm">Personel, izin ve avans</p>
-        </div>
-        <div className="p-6 bg-white rounded shadow hover:bg-slate-50 cursor-pointer" onClick={() => router.push('/restaurant/1')}>
-          <h3 className="font-semibold">Restaurant 1 / 2</h3>
-          <p className="text-sm">Ciro ve gider yönetimi</p>
-        </div>
+      <h1 style={{ fontSize: 28, marginBottom: 12 }}>{t("home")}</h1>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        <Link href="/depo"><div style={{ ...box, background: "#0b74ff", color: "#fff" }}>{t("depo")}</div></Link>
+        <Link href="/ik"><div style={{ ...box, background: "#06b6d4", color: "#fff" }}>{t("ik")}</div></Link>
+        <Link href="/restaurant/1"><div style={{ ...box, background: "#f97316", color: "#fff" }}>Restaurant 1</div></Link>
+        <Link href="/restaurant/2"><div style={{ ...box, background: "#10b981", color: "#fff" }}>Restaurant 2</div></Link>
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        {user ? <div>Hoşgeldiniz, {user.name}</div> : <div>Giriş yapın.</div>}
       </div>
     </div>
   );
