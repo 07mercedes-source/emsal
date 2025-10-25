@@ -1,31 +1,28 @@
 // pages/ik/izin.js
 import { useState } from "react";
-import { useIK } from "../../context/IKContext";
 
-export default function IzinPage() {
-  const { submitIzin } = useIK();
-  const [form, setForm] = useState({ id: "", name: "", from: "", to: "", note: "" });
+export default function Izin() {
+  const [form, setForm] = useState({ sicil: "", ad: "", from: "", to: "", msg: "" });
 
-  function send() {
-    if (!form.id || !form.from || !form.to) return alert("Gerekli alanlar eksik");
-    submitIzin({ ...form, date: new Date().toISOString() });
-    alert("İzin talebi gönderildi.");
-    setForm({ id: "", name: "", from: "", to: "", note: "" });
-  }
+  const submit = (e) => {
+    e.preventDefault();
+    alert("İzin talebi gönderildi (simüle).");
+    setForm({ sicil: "", ad: "", from: "", to: "", msg: "" });
+  };
 
   return (
     <div>
-      <h1>Yıllık İzin Talebi</h1>
-      <div style={{ display: "grid", gap: 8, width: 420 }}>
-        <input placeholder="Sicil No" value={form.id} onChange={(e) => setForm(s => ({ ...s, id: e.target.value }))} />
-        <input placeholder="Ad Soyad" value={form.name} onChange={(e) => setForm(s => ({ ...s, name: e.target.value }))} />
-        <label>Başlangıç</label>
-        <input type="date" value={form.from} onChange={(e) => setForm(s => ({ ...s, from: e.target.value }))} />
-        <label>Bitiş</label>
-        <input type="date" value={form.to} onChange={(e) => setForm(s => ({ ...s, to: e.target.value }))} />
-        <textarea placeholder="Açıklama" value={form.note} onChange={(e) => setForm(s => ({ ...s, note: e.target.value }))} />
-        <button onClick={send} style={{ padding: 8, background: "#0b1220", color: "#fff" }}>Gönder</button>
-      </div>
+      <h2 className="text-xl font-semibold mb-3">Yıllık İzin Talebi</h2>
+      <form onSubmit={submit} className="bg-white p-4 rounded shadow max-w-md">
+        <input value={form.sicil} onChange={(e)=>setForm({...form, sicil:e.target.value})} placeholder="Sicil" className="w-full p-2 border rounded mb-2" />
+        <input value={form.ad} onChange={(e)=>setForm({...form, ad:e.target.value})} placeholder="Ad Soyad" className="w-full p-2 border rounded mb-2" />
+        <div className="flex gap-2 mb-2">
+          <input type="date" value={form.from} onChange={(e)=>setForm({...form, from:e.target.value})} className="p-2 border rounded flex-1" />
+          <input type="date" value={form.to} onChange={(e)=>setForm({...form, to:e.target.value})} className="p-2 border rounded flex-1" />
+        </div>
+        <textarea value={form.msg} onChange={(e)=>setForm({...form, msg:e.target.value})} placeholder="Açıklama" className="w-full p-2 border rounded mb-2" />
+        <button className="px-3 py-2 bg-blue-600 text-white rounded">Gönder</button>
+      </form>
     </div>
   );
 }
