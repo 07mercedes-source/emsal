@@ -1,51 +1,45 @@
 // pages/depo/rapor.js
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDepo } from "../../context/DepoContext";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function DepoRapor() {
-  const { urunler } = useDepo();
+  const { history, urunler } = useDepo();
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  // Bu demo sürümünde, depo değişikliklerine göre örnek rapor çıkar (gerçek log sistemi yok).
-  const handleExcel = async () => {
-    const XLSX = (await import("xlsx")).default;
-    const data = urunler.map(u => ({ ID: u.id, Ad: u.ad, Kategori: u.kategori, Stok: u.stok, Birim: u.birim, Maliyet: u.maliyet }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Depo");
-    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    const { saveAs } = await import("file-saver");
-    const blob = new Blob([buf], { type: "application/octet-stream" });
-    saveAs(blob, `depo-rapor-${new Date().toISOString().slice(0,10)}.xlsx`);
+  const filter = () => {
+    if (!from || !to) return history;
+    const f = new Date(from), t = new Date(to);
+    return history.filter(h => {
+      const d = new Date(h.date);
+      return d >= f && d <= t;
+    });
   };
 
-  const handlePdf = async () => {
-    const jsPDF = (await import("jspdf")).default;
-    const autoTable = (await import("jspdf-autotable")).default;
-    const doc = new jsPDF();
-    doc.text("Depo Raporu", 14, 16);
-    const rows = urunler.map(u => [u.id.slice(0,8), u.ad, u.kategori, u.stok, u.birim, Number(u.maliyet).toFixed(2)]);
-    autoTable(doc, { head: [["ID","Ad","Kategori","Stok","Birim","Maliyet"]], body: rows, startY: 22 });
-    doc.save(`depo-rapor-${new Date().toISOString().slice(0,10)}.pdf`);
+  const downloadExcel = () => {
+    const data = filter().map(h => {
+      const p = urunler.find(u => u.id === h.productId) || {};
+      return { date: h.date, action: h.action, product: p.ad || h.productId, qty: h.qty, toRestaurant: h.toRestaurant || "" };
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rapor");
+    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([buf]), `depo-rapor-${from || "all"}-${to || "all"}.xlsx`);
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Depo Raporları</h2>
-      <div style={{ marginBottom: 12 }}>
-        <label>Başlangıç</label>
-        <input type="date" value={from} onChange={(e)=>setFrom(e.target.value)} />
-        <label style={{ marginLeft: 8 }}>Bitiş</label>
-        <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} />
-      </div>
-
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={handleExcel} style={btn}>📥 Excel İndir</button>
-        <button onClick={handlePdf} style={btn}>📄 PDF İndir</button>
+    <div>
+      <h2 className="text-xl font-semibold mb-3">Depo Rapor</h2>
+      <div className="bg-white p-4 rounded shadow max-w-lg">
+        <div className="flex gap-2">
+          <input type="date" value={from} onChange={(e)=>setFrom(e.target.value)} className="p-2 border rounded" />
+          <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} className="p-2 border rounded" />
+          <button onClick={downloadExcel} className="px-3 py-2 bg-blue-600 text-white rounded">Excel İndir</button>
+        </div>
       </div>
     </div>
   );
 }
-
-const btn = { padding: "8px 12px", background:"#0ea5e9", color:"#fff", border:"none", borderRadius:6 };
