@@ -1,56 +1,88 @@
 // pages/restaurant/[id].js
 import { useRouter } from "next/router";
-import { useRestaurant } from "../../context/RestaurantContext";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRestaurantData } from "../../context/RestaurantContext";
 
 export default function RestaurantPage() {
   const router = useRouter();
-  const { id } = router.query; // "1" veya "2"
-  const { getByMonth, addRecord, totalsByMonth } = useRestaurant();
-  const today = new Date();
-  const [month, setMonth] = useState(today.getMonth()+1);
-  const [year, setYear] = useState(today.getFullYear());
-  const [form, setForm] = useState({ date: today.toISOString().slice(0,10), type: "income", description: "", amount: 0 });
+  const { id } = router.query;
+  const { getEntries, addEntry } = useRestaurantData();
+  const entries = getEntries(id || "1");
 
-  const records = getByMonth(id || "1", month, year);
-  const totals = totalsByMonth(id || "1", month, year);
+  const [date, setDate] = useState("");
+  const [type, setType] = useState("revenue");
+  const [amount, setAmount] = useState(0);
+  const [desc, setDesc] = useState("");
 
-  const handleAdd = () => {
-    if (!form.description) return alert("Açıklama girin");
-    addRecord(id, form);
-    setForm({ date: today.toISOString().slice(0,10), type: "income", description: "", amount: 0 });
+  const [month, setMonth] = useState("");
+
+  useEffect(() => {
+    const now = new Date();
+    setMonth(now.toISOString().slice(0,7));
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!month) return entries;
+    return entries.filter(e => e.date.startsWith(month));
+  }, [entries, month]);
+
+  const totals = useMemo(() => {
+    const rev = filtered.filter(e=>e.type==="revenue").reduce((s,e)=>s+e.amount,0);
+    const exp = filtered.filter(e=>e.type==="expense").reduce((s,e)=>s+e.amount,0);
+    return { rev, exp, net: rev - exp };
+  }, [filtered]);
+
+  const submit = (e) => {
+    e.preventDefault();
+    addEntry(id, { date: date || new Date().toISOString().slice(0,10), type, amount: Number(amount), desc });
+    setAmount(0); setDesc(""); setDate("");
   };
 
   return (
     <div>
-      <h2>Restaurant {id}</h2>
+      <h1 className="text-2xl font-semibold mb-4">Restaurant {id}</h1>
 
-      <div style={{ marginBottom: 12 }}>
-        <label>Ay: <input type="number" min="1" max="12" value={month} onChange={e=>setMonth(Number(e.target.value))} /></label>
-        <label style={{ marginLeft: 8 }}>Yıl: <input type="number" value={year} onChange={e=>setYear(Number(e.target.value))} /></label>
+      <div className="bg-white p-4 rounded shadow mb-4">
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <div className="text-sm">Toplam Gelir: €{totals.rev.toLocaleString('de-DE')}</div>
+            <div className="text-sm">Toplam Gider: €{totals.exp.toLocaleString('de-DE')}</div>
+            <div className="text-sm font-medium">Net: €{totals.net.toLocaleString('de-DE')}</div>
+          </div>
+
+          <div>
+            <label className="block text-sm">Ay (YYYY-MM)</label>
+            <input value={month} onChange={(e)=>setMonth(e.target.value)} placeholder="2026-01" className="p-2 border rounded" />
+          </div>
+        </div>
       </div>
 
-      <div style={{ marginBottom: 12 }}>
-        <div>Toplam Gelir: €{totals.income}</div>
-        <div>Toplam Gider: €{totals.expense}</div>
-        <div>Net: €{totals.net}</div>
+      <div className="bg-white p-4 rounded shadow mb-4">
+        <form onSubmit={submit} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+          <input value={date} onChange={(e)=>setDate(e.target.value)} type="date" className="p-2 border rounded" />
+          <select value={type} onChange={(e)=>setType(e.target.value)} className="p-2 border rounded">
+            <option value="revenue">Gelir</option>
+            <option value="expense">Gider</option>
+          </select>
+          <input value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="Tutar" type="number" className="p-2 border rounded" />
+          <input value={desc} onChange={(e)=>setDesc(e.target.value)} placeholder="Açıklama" className="p-2 border rounded" />
+          <div className="md:col-span-4">
+            <button className="px-3 py-2 bg-green-600 text-white rounded">Ekle</button>
+          </div>
+        </form>
       </div>
 
-      <div style={{ border: "1px solid #eee", padding: 8, marginBottom: 12 }}>
-        <input type="date" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} />
-        <select value={form.type} onChange={e=>setForm({...form, type:e.target.value})}>
-          <option value="income">Gelir</option>
-          <option value="expense">Gider</option>
-        </select>
-        <input placeholder="Açıklama" value={form.description} onChange={e=>setForm({...form, description:e.target.value})} />
-        <input type="number" placeholder="Tutar (€)" value={form.amount} onChange={e=>setForm({...form, amount:Number(e.target.value)})} />
-        <button onClick={handleAdd}>Ekle</button>
+      <div className="bg-white p-4 rounded shadow">
+        <h3 className="font-semibold mb-2">Hareketler</h3>
+        <div className="space-y-2">
+          {filtered.map(e => (
+            <div key={e.id} className="flex justify-between border-b py-2">
+              <div>{e.date} • {e.desc}</div>
+              <div>{e.type === "revenue" ? "€" + e.amount.toLocaleString('de-DE') : "-€" + e.amount.toLocaleString('de-DE')}</div>
+            </div>
+          ))}
+        </div>
       </div>
-
-      <table style={{ width: "100%" }}>
-        <thead><tr><th>Tarih</th><th>Tip</th><th>Açıklama</th><th>Tutar (€)</th></tr></thead>
-        <tbody>{records.map(r=><tr key={r.id}><td>{r.date}</td><td>{r.type}</td><td>{r.description}</td><td>{r.amount}</td></tr>)}</tbody>
-      </table>
     </div>
   );
 }
