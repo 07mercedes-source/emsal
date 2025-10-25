@@ -1,17 +1,17 @@
-// components/Layout.js
+ // components/Layout.js
 import React from "react";
 import Navbar from "./Navbar";
 import RightPanel from "./RightPanel";
 
 export default function Layout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div style={{ display: "flex", minHeight: "100vh", flexDirection: "column", fontFamily: "Inter, Arial, sans-serif" }}>
       <Navbar />
-      <div className="flex flex-1">
-        <main className="flex-1 p-6 mr-72">{children}</main>
+      <div style={{ display: "flex", flex: 1 }}>
+        <main style={{ flex: 1, padding: 20, marginRight: 320 }}>{children}</main>
         <RightPanel />
       </div>
-      <footer className="text-center p-3 bg-white border-t">
+      <footer style={{ textAlign: "center", padding: "12px 8px", background: "#0b1220", color: "#cfe0ff" }}>
         © {new Date().getFullYear()} EMSAL GmbH — Tüm hakları saklıdır.
       </footer>
     </div>
