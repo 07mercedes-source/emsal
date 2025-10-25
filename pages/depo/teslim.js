@@ -1,33 +1,24 @@
 // pages/depo/teslim.js
-import { useState } from "react";
+import React, { useState } from "react";
 import { useDepo } from "../../context/DepoContext";
 
-export default function Teslim() {
-  const { urunler, updateUrun, pushHistory } = useDepo();
-  const [id, setId] = useState("");
-  const [amount, setAmount] = useState(0);
+export default function DepoTeslim() {
+  const { products, receiveProduct } = useDepo();
+  const [idOrSku, setIdOrSku] = useState("");
+  const [qty, setQty] = useState(1);
+  const getBy = (v) => products.find((p) => p.sku === v || p.id === v);
 
-  const pick = urunler.find(u => u.id.startsWith(id) || u.id === id);
-
-  const submit = (e) => {
-    e.preventDefault();
-    if (!pick) return alert("Ürün bulunamadı.");
-    const newQty = (pick.miktar || 0) + Number(amount);
-    updateUrun(pick.id, { miktar: newQty });
-    pushHistory({ action: "teslim", productId: pick.id, qty: Number(amount), date: new Date().toISOString().slice(0,10) });
-    alert("Teslim alındı.");
-    setId(""); setAmount(0);
-  };
+  const prod = getBy(idOrSku);
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-3">Teslim Alma</h2>
-      <form onSubmit={submit} className="bg-white p-4 rounded shadow max-w-md">
-        <input value={id} onChange={(e)=>setId(e.target.value)} placeholder="Ürün ID (kısmî yazabilirsiniz)" className="w-full p-2 border rounded mb-2" />
-        <div className="mb-2">{pick ? `${pick.ad} — Stok: ${pick.miktar}` : "Ürün seçilmedi"}</div>
-        <input value={amount} onChange={(e)=>setAmount(e.target.value)} type="number" className="w-full p-2 border rounded mb-2" placeholder="Adet" />
-        <button className="px-4 py-2 bg-green-600 text-white rounded">Stok Güncelle</button>
-      </form>
+      <h2>Ürün Teslim Alma</h2>
+      <div style={{ display: "flex", gap: 8 }}>
+        <input placeholder="Ürün ID veya SKU girin" value={idOrSku} onChange={(e) => setIdOrSku(e.target.value)} />
+        <input type="number" min={1} value={qty} onChange={(e) => setQty(e.target.value)} style={{ width: 100 }} />
+        <button onClick={() => { if (!prod) return alert("Ürün bulunamadı"); receiveProduct({ id: prod.id, qty }); alert("Stok güncellendi"); }}>Teslim Al</button>
+      </div>
+      {prod && <div style={{ marginTop: 12 }}>Bulunan Ürün: <b>{prod.name}</b> — Şu an stok: {prod.stock}</div>}
     </div>
   );
 }
