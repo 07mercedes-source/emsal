@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext(null);
 
-const demoUsers = [
+const DEMO_USERS = [
   { username: "admin", password: "12345", name: "Admin Kullanıcı", role: "Yönetici" },
   { username: "muhasebe", password: "12345", name: "Muhasebe Kullanıcı", role: "Muhasebe" },
   { username: "personel", password: "12345", name: "Personel Kullanıcı", role: "Personel" },
@@ -14,25 +14,24 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("emsal_user");
-      if (raw) setUser(JSON.parse(raw));
-    } catch (e) {}
+      const s = localStorage.getItem("emsal_user");
+      if (s) setUser(JSON.parse(s));
+    } catch {}
   }, []);
 
-  function login(username, password) {
-    // gerçek projede API ile doğrula. burada demo:
-    const u = demoUsers.find((x) => x.username === username && x.password === password);
-    if (!u) return false;
-    const minimal = { username: u.username, name: u.name, role: u.role };
-    setUser(minimal);
-    try { localStorage.setItem("emsal_user", JSON.stringify(minimal)); } catch (e) {}
-    return true;
-  }
+  const login = (username, password) => {
+    const u = DEMO_USERS.find((x) => x.username === username && x.password === password);
+    if (!u) return { ok: false, msg: "Kullanıcı veya şifre hatalı" };
+    const payload = { username: u.username, name: u.name, role: u.role };
+    setUser(payload);
+    localStorage.setItem("emsal_user", JSON.stringify(payload));
+    return { ok: true };
+  };
 
-  function logout() {
+  const logout = () => {
     setUser(null);
-    try { localStorage.removeItem("emsal_user"); } catch (e) {}
-  }
+    localStorage.removeItem("emsal_user");
+  };
 
   return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
 }
