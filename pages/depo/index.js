@@ -1,117 +1,94 @@
-// pages/depo/index.js
-import { useEffect, useMemo, useState } from "react";
 import { useDepo } from "../../context/DepoContext";
-import { useAuth } from "../../context/AuthContext";
-import { useRouter } from "next/router";
+import { useState } from "react";
 
-export default function DepoPage() {
-  const router = useRouter();
-  const { products, addProduct, updateProduct, removeProduct } = useDepo();
-  const { user } = useAuth() || {};
-  const isAdmin = user?.role === "Yönetici";
+export default function Depo() {
+  const { filtre, setFiltre, filtrelenmis, urunSil, urunEkle } = useDepo();
+  const [yeni, setYeni] = useState({ ad: "", stok: "", birim: "", kategori: "Et" });
 
-  // filtre
-  const [filter, setFilter] = useState("");
-  const [category, setCategory] = useState("Tümü");
-
-  const categories = useMemo(() => ["Tümü", ...Array.from(new Set(products.map((p) => p.category)))], [products]);
-
-  const filtered = products.filter((p) => {
-    if (category !== "Tümü" && p.category !== category) return false;
-    if (!filter) return true;
-    return p.name.toLowerCase().includes(filter.toLowerCase()) || p.id.toLowerCase().includes(filter.toLowerCase());
-  });
-
-  // inline edit (basit)
-  const [editingId, setEditingId] = useState(null);
-  const [rowDraft, setRowDraft] = useState({});
-
-  function startEdit(p) {
-    setEditingId(p.id);
-    setRowDraft({ ...p });
-  }
-  function saveEdit() {
-    updateProduct(editingId, rowDraft);
-    setEditingId(null);
-    setRowDraft({});
-  }
-  function cancelEdit() {
-    setEditingId(null);
-    setRowDraft({});
-  }
-
-  // yeni ürün ekleme satırı
-  const [newRow, setNewRow] = useState({ name: "", category: "", unit: "", qty: 0, cost: 0 });
-
-  function createNew() {
-    if (!newRow.name) return alert("Ürün adı girin");
-    addProduct(newRow);
-    setNewRow({ name: "", category: "", unit: "", qty: 0, cost: 0 });
-  }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!yeni.ad || !yeni.stok) return;
+    urunEkle(yeni);
+    setYeni({ ad: "", stok: "", birim: "", kategori: "Et" });
+  };
 
   return (
-    <div>
-      <h1>Depo</h1>
+    <div style={{ padding: 20 }}>
+      <h2>Depo Modülü</h2>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button onClick={() => router.push("/depo/sevk")} style={{ padding: 8, background: "#ffb000", border: "none", borderRadius: 6 }}>🚚 Sevk Et</button>
-        <button onClick={() => router.push("/depo/rapor")} style={{ padding: 8, background: "#10b981", border: "none", borderRadius: 6 }}>📊 Rapor</button>
-        <button onClick={() => router.push("/depo/teslim")} style={{ padding: 8, background: "#0ea5e9", border: "none", borderRadius: 6 }}>📦 Teslim Al</button>
-      </div>
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <input placeholder="Ara (isim veya id)" value={filter} onChange={(e) => setFilter(e.target.value)} />
-        <select value={category} onChange={(e) => setCategory(e.target.value)}>
-          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </div>
-
-      {/* yeni satır (excel-like) */}
-      {isAdmin && (
-        <div style={{ display: "grid", gridTemplateColumns: "150px 140px 100px 80px 80px 120px", gap: 8, marginBottom: 12, alignItems: "center" }}>
-          <input placeholder="Ürün adı" value={newRow.name} onChange={(e) => setNewRow(s => ({ ...s, name: e.target.value }))} />
-          <input placeholder="Kategori" value={newRow.category} onChange={(e) => setNewRow(s => ({ ...s, category: e.target.value }))} />
-          <input placeholder="Birim" value={newRow.unit} onChange={(e) => setNewRow(s => ({ ...s, unit: e.target.value }))} />
-          <input type="number" placeholder="Adet" value={newRow.qty} onChange={(e) => setNewRow(s => ({ ...s, qty: Number(e.target.value) }))} />
-          <input type="number" placeholder="Maliyet" value={newRow.cost} onChange={(e) => setNewRow(s => ({ ...s, cost: Number(e.target.value) }))} />
-          <div>
-            <button onClick={createNew} style={{ padding: 6, background: "#0b1220", color: "#fff", border: "none", borderRadius: 6 }}>➕ Yeni Ürün Ekle</button>
-          </div>
-        </div>
-      )}
-
-      {/* tablo */}
-      <div style={{ borderTop: "1px solid #eee" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "120px 180px 120px 80px 100px 120px", gap: 8, padding: "8px 0", fontWeight: 700 }}>
-          <div>ID</div><div>Ürün Adı</div><div>Kategori</div><div>Birim</div><div>Stok</div><div>Maliyet (€)</div>
-        </div>
-
-        {filtered.map((p) => (
-          <div key={p.id} style={{ display: "grid", gridTemplateColumns: "120px 180px 120px 80px 100px 120px", gap: 8, padding: "6px 0", alignItems: "center", borderBottom: "1px solid #f3f6fb" }}>
-            <div>{p.id}</div>
-
-            <div>
-              {editingId === p.id ? <input value={rowDraft.name} onChange={(e) => setRowDraft(s => ({ ...s, name: e.target.value }))} /> : p.name}
-            </div>
-
-            <div>
-              {editingId === p.id ? <input value={rowDraft.category} onChange={(e) => setRowDraft(s => ({ ...s, category: e.target.value }))} /> : p.category}
-            </div>
-
-            <div>{editingId === p.id ? <input value={rowDraft.unit} onChange={(e) => setRowDraft(s => ({ ...s, unit: e.target.value }))} /> : p.unit}</div>
-
-            <div>{editingId === p.id ? <input type="number" value={rowDraft.qty} onChange={(e) => setRowDraft(s => ({ ...s, qty: Number(e.target.value) }))} /> : p.qty}</div>
-
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              {editingId === p.id ? <input type="number" value={rowDraft.cost} onChange={(e) => setRowDraft(s => ({ ...s, cost: Number(e.target.value) }))} /> : `€${p.cost}`}
-              {isAdmin && editingId !== p.id && <button onClick={() => startEdit(p)} style={{ padding: 6 }}>✏️</button>}
-              {isAdmin && editingId === p.id && <button onClick={saveEdit} style={{ padding: 6 }}>✅</button>}
-              {isAdmin && editingId === p.id && <button onClick={cancelEdit} style={{ padding: 6 }}>❌</button>}
-              {isAdmin && <button onClick={() => { if (confirm("Silinsin mi?")) removeProduct(p.id); }} style={{ padding: 6 }}>🗑️</button>}
-            </div>
-          </div>
+      {/* Filtre */}
+      <div style={{ marginBottom: 12 }}>
+        {["Tümü", "Et", "İçecek", "Kuru Gıda", "Alkol"].map((k) => (
+          <button
+            key={k}
+            onClick={() => setFiltre(k)}
+            style={{
+              margin: 4,
+              padding: "6px 10px",
+              background: filtre === k ? "#0ea5e9" : "#e5e7eb",
+              border: "none",
+              borderRadius: 6
+            }}
+          >
+            {k}
+          </button>
         ))}
       </div>
+
+      {/* Ürün Listesi */}
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead style={{ background: "#0f172a", color: "#fff" }}>
+          <tr>
+            <th>Ad</th><th>Kategori</th><th>Stok</th><th>Birim</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtrelenmis.map((u) => (
+            <tr key={u.id} style={{ borderBottom: "1px solid #ddd" }}>
+              <td>{u.ad}</td>
+              <td>{u.kategori}</td>
+              <td>{u.stok}</td>
+              <td>{u.birim}</td>
+              <td>
+                <button onClick={() => urunSil(u.id)} style={{ color: "red" }}>
+                  Sil
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Yeni Ürün */}
+      <h3 style={{ marginTop: 20 }}>Yeni Ürün Ekle</h3>
+      <form onSubmit={handleSubmit}>
+        <input
+          placeholder="Ad"
+          value={yeni.ad}
+          onChange={(e) => setYeni({ ...yeni, ad: e.target.value })}
+        />
+        <input
+          placeholder="Stok"
+          type="number"
+          value={yeni.stok}
+          onChange={(e) => setYeni({ ...yeni, stok: e.target.value })}
+        />
+        <input
+          placeholder="Birim"
+          value={yeni.birim}
+          onChange={(e) => setYeni({ ...yeni, birim: e.target.value })}
+        />
+        <select
+          value={yeni.kategori}
+          onChange={(e) => setYeni({ ...yeni, kategori: e.target.value })}
+        >
+          <option>Et</option>
+          <option>İçecek</option>
+          <option>Kuru Gıda</option>
+          <option>Alkol</option>
+        </select>
+        <button type="submit">Ekle</button>
+      </form>
     </div>
   );
 }
