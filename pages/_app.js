@@ -2,14 +2,13 @@
 import "../styles/globals.css";
 import dynamic from "next/dynamic";
 import { AuthProvider } from "../context/AuthContext";
-import { LanguageProvider } from "../context/LanguageContext";
-import { DepoProvider } from "../context/DepoContext";
 import { IKProvider } from "../context/IKContext";
+import { DepoProvider } from "../context/DepoContext";
 import { RestaurantProvider } from "../context/RestaurantContext";
+import { LanguageProvider } from "../context/LanguageContext";
 import Layout from "../components/Layout";
 
 function MyApp({ Component, pageProps }) {
-  // dynamic export with ssr false prevents some hydration issues in your environment
   return (
     <AuthProvider>
       <LanguageProvider>
