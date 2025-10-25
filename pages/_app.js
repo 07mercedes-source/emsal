@@ -1,29 +1,26 @@
 // pages/_app.js
-import dynamic from "next/dynamic";
 import "../styles/globals.css";
 import { AuthProvider } from "../context/AuthContext";
-import { IKProvider } from "../context/IKContext";
-import { DepoProvider } from "../context/DepoContext";
-import { RestaurantProvider } from "../context/RestaurantContext";
 import { LanguageProvider } from "../context/LanguageContext";
+import { DepoProvider } from "../context/DepoContext";
+import { IKProvider } from "../context/IKContext";
+import { RestaurantProvider } from "../context/RestaurantContext";
 import Layout from "../components/Layout";
 
-function MyApp({ Component, pageProps }) {
+export default function MyApp({ Component, pageProps }) {
   return (
     <AuthProvider>
       <LanguageProvider>
-        <IKProvider>
+        <RestaurantProvider>
           <DepoProvider>
-            <RestaurantProvider>
+            <IKProvider>
               <Layout>
                 <Component {...pageProps} />
               </Layout>
-            </RestaurantProvider>
+            </IKProvider>
           </DepoProvider>
-        </IKProvider>
+        </RestaurantProvider>
       </LanguageProvider>
     </AuthProvider>
   );
 }
-
-export default dynamic(() => Promise.resolve(MyApp), { ssr: false });
