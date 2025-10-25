@@ -8,7 +8,7 @@ export default function Layout({ children }) {
     <div style={{ display: "flex", minHeight: "100vh", flexDirection: "column" }}>
       <Navbar />
       <div style={{ display: "flex", flex: 1 }}>
-        <main style={{ flex: 1, padding: "20px", marginRight: 280 }}>{children}</main>
+        <main style={{ flex: 1, padding: "20px", marginRight: 300 }}>{children}</main>
         <RightPanel />
       </div>
       <footer style={{ textAlign: "center", padding: "12px 8px", background: "#f5f7fb", color: "#333" }}>
