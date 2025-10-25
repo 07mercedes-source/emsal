@@ -1,29 +1,26 @@
 // pages/ik/avans.js
 import { useState } from "react";
-import { useIK } from "../../context/IKContext";
 
-export default function AvansPage() {
-  const { submitAvans } = useIK();
-  const [form, setForm] = useState({ id: "", name: "", amount: "", note: "" });
+export default function Avans() {
+  const [form, setForm] = useState({ sicil: "", ad: "", from: "", to: "", miktar: 0, msg: "" });
 
-  function send() {
-    if (!form.id || !form.amount) return alert("Sicil ve tutar gerekli");
-    const payload = { ...form, date: new Date().toISOString() };
-    submitAvans(payload);
-    alert("Avans talebi gönderildi (kaydedildi).");
-    setForm({ id: "", name: "", amount: "", note: "" });
-  }
+  const submit = (e) => {
+    e.preventDefault();
+    // burada form server API'ye post edilebilir (/api/sendMail)
+    alert("Avans talebi gönderildi (simüle).");
+    setForm({ sicil: "", ad: "", from: "", to: "", miktar: 0, msg: "" });
+  };
 
   return (
     <div>
-      <h1>Avans Talebi</h1>
-      <div style={{ display: "grid", gap: 8, width: 420 }}>
-        <input placeholder="Sicil No" value={form.id} onChange={(e) => setForm(s => ({ ...s, id: e.target.value }))} />
-        <input placeholder="Ad Soyad" value={form.name} onChange={(e) => setForm(s => ({ ...s, name: e.target.value }))} />
-        <input placeholder="Tutar (€)" type="number" value={form.amount} onChange={(e) => setForm(s => ({ ...s, amount: e.target.value }))} />
-        <textarea placeholder="Açıklama" value={form.note} onChange={(e) => setForm(s => ({ ...s, note: e.target.value }))} />
-        <button onClick={send} style={{ padding: 8, background: "#0b1220", color: "#fff" }}>Gönder</button>
-      </div>
+      <h2 className="text-xl font-semibold mb-3">Avans Talebi</h2>
+      <form onSubmit={submit} className="bg-white p-4 rounded shadow max-w-md">
+        <input value={form.sicil} onChange={(e)=>setForm({...form, sicil:e.target.value})} placeholder="Sicil" className="w-full p-2 border rounded mb-2" />
+        <input value={form.ad} onChange={(e)=>setForm({...form, ad:e.target.value})} placeholder="Ad Soyad" className="w-full p-2 border rounded mb-2" />
+        <input value={form.miktar} onChange={(e)=>setForm({...form, miktar:Number(e.target.value)})} placeholder="Miktar (€)" type="number" className="w-full p-2 border rounded mb-2" />
+        <textarea value={form.msg} onChange={(e)=>setForm({...form, msg:e.target.value})} placeholder="Açıklama" className="w-full p-2 border rounded mb-2" />
+        <button className="px-3 py-2 bg-blue-600 text-white rounded">Gönder</button>
+      </form>
     </div>
   );
 }
