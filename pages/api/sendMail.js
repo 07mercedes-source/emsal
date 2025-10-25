@@ -1,39 +1,34 @@
+// pages/api/sendMail.js
 import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ ok: false, msg: "Method not allowed" });
 
   const { to, subject, text, html } = req.body;
-
-  if (!to || !subject || (!text && !html)) {
-    return res.status(400).json({ message: "Eksik alanlar var" });
-  }
+  if (!to || !subject) return res.status(400).json({ ok: false, msg: "Eksik parametre" });
 
   try {
-    // Gmail veya özel SMTP ayarlarını buraya koy
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: Number(process.env.SMTP_PORT || 465),
+      secure: process.env.SMTP_SECURE !== "false",
       auth: {
-        user: process.env.GMAIL_USER || "ornekmail@gmail.com",
-        pass: process.env.GMAIL_PASS || "uygulama_şifresi",
-      },
+        user: process.env.GMAIL_USER || process.env.SMTP_USER,
+        pass: process.env.GMAIL_PASS || process.env.SMTP_PASS
+      }
     });
 
     await transporter.sendMail({
-      from: `"EMSAL GmbH" <${process.env.GMAIL_USER || "ornekmail@gmail.com"}>`,
+      from: `"EMSAL GmbH" <${process.env.GMAIL_USER || process.env.SMTP_USER}>`,
       to,
       subject,
       text,
-      html,
+      html
     });
 
-    res.status(200).json({ message: "Mail başarıyla gönderildi" });
-  } catch (error) {
-    console.error("Mail gönderim hatası:", error);
-    res.status(500).json({ message: "Mail gönderilemedi", error: error.message });
+    return res.status(200).json({ ok: true, msg: "Gönderildi" });
+  } catch (err) {
+    console.error("sendMail error:", err);
+    return res.status(500).json({ ok: false, error: err.message });
   }
 }
