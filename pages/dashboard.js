@@ -1,11 +1,12 @@
+// pages/dashboard.js
+import { useLanguage } from "../context/LanguageContext";
+
 export default function Dashboard() {
+  const { t } = useLanguage();
   return (
-    <main className="max-w-5xl mx-auto mt-10 p-6 bg-white shadow rounded-2xl">
-      <h1 className="text-2xl font-bold mb-4">Hoş Geldiniz</h1>
-      <p className="text-gray-600">
-        Yukarıdaki menüden depo, restoran ve insan kaynakları modüllerine
-        erişebilirsiniz.
-      </p>
-    </main>
+    <div className="card">
+      <h1 style={{fontSize:22, marginBottom:8}}>{t("home") || "Anasayfa"}</h1>
+      <p>Modüller: Depo, İnsan Kaynakları, Restaurantlar. Menüden seçin.</p>
+    </div>
   );
 }
