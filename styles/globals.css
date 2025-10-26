@@ -4,13 +4,8 @@
 
 body {
   @apply bg-gray-50 text-gray-900;
-  font-family: 'Inter', sans-serif;
 }
 
-button {
-  @apply px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition;
-}
-
-.card {
-  @apply bg-white p-4 rounded-xl shadow-md;
+footer {
+  @apply text-center text-sm text-gray-500 py-4;
 }
