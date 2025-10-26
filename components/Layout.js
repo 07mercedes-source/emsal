@@ -1,19 +1,18 @@
- // components/Layout.js
-import React from "react";
+// components/Layout.js
 import Navbar from "./Navbar";
 import RightPanel from "./RightPanel";
 
 export default function Layout({ children }) {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", flexDirection: "column", fontFamily: "Inter, Arial, sans-serif" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Navbar />
       <div style={{ display: "flex", flex: 1 }}>
-        <main style={{ flex: 1, padding: 20, marginRight: 320 }}>{children}</main>
-        <RightPanel />
+        <main style={{ flex: 1, padding: 20, maxWidth: 1200, margin: "0 auto" }}>{children}</main>
+        <aside className="sidebar-right" style={{ background: "transparent" }}>
+          <RightPanel />
+        </aside>
       </div>
-      <footer style={{ textAlign: "center", padding: "12px 8px", background: "#0b1220", color: "#cfe0ff" }}>
-        © {new Date().getFullYear()} EMSAL GmbH — Tüm hakları saklıdır.
-      </footer>
+      <footer className="footer">© {new Date().getFullYear()} EMSAL GmbH — Tüm hakları saklıdır.</footer>
     </div>
   );
 }
