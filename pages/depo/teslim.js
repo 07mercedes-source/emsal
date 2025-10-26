@@ -1,24 +1,37 @@
 // pages/depo/teslim.js
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDepo } from "../../context/DepoContext";
 
-export default function DepoTeslim() {
-  const { products, receiveProduct } = useDepo();
-  const [idOrSku, setIdOrSku] = useState("");
-  const [qty, setQty] = useState(1);
-  const getBy = (v) => products.find((p) => p.sku === v || p.id === v);
+export default function DepoTeslim(){
+  const { products, adjustStock } = useDepo();
+  const [productId, setProductId] = useState("");
+  const [qty, setQty] = useState(0);
 
-  const prod = getBy(idOrSku);
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if(!productId) return alert("Ürün seçin");
+    adjustStock(productId, Number(qty));
+    alert("Teslim alındı ve stok güncellendi.");
+    setProductId(""); setQty(0);
+  };
 
   return (
     <div>
-      <h2>Ürün Teslim Alma</h2>
-      <div style={{ display: "flex", gap: 8 }}>
-        <input placeholder="Ürün ID veya SKU girin" value={idOrSku} onChange={(e) => setIdOrSku(e.target.value)} />
-        <input type="number" min={1} value={qty} onChange={(e) => setQty(e.target.value)} style={{ width: 100 }} />
-        <button onClick={() => { if (!prod) return alert("Ürün bulunamadı"); receiveProduct({ id: prod.id, qty }); alert("Stok güncellendi"); }}>Teslim Al</button>
-      </div>
-      {prod && <div style={{ marginTop: 12 }}>Bulunan Ürün: <b>{prod.name}</b> — Şu an stok: {prod.stock}</div>}
+      <h2 className="h1">Teslim Alma</h2>
+      <form onSubmit={onSubmit} className="card">
+        <label className="small-muted">Ürün</label>
+        <select value={productId} onChange={e=>setProductId(e.target.value)} style={{width:"100%",padding:8,borderRadius:6}}>
+          <option value="">-- Seçiniz --</option>
+          {products.map(p=> <option key={p.id} value={p.id}>{p.name} ({p.unit})</option>)}
+        </select>
+
+        <label className="small-muted">Adet / Miktar</label>
+        <input type="number" value={qty} onChange={e=>setQty(e.target.value)} style={{width:"100%",padding:8,borderRadius:6}} />
+
+        <div style={{marginTop:8}}>
+          <button className="button" type="submit">Stok Güncelle</button>
+        </div>
+      </form>
     </div>
   );
 }
