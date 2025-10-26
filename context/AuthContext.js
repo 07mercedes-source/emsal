@@ -1,38 +1,36 @@
-// context/AuthContext.js
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
-const demoUsers = {
-  admin: { name: "Admin Kullanıcı", role: "Yönetici", username: "admin", password: "12345" },
-  muhasebe: { name: "Muhasebe Kullanıcı", role: "Muhasebe", username: "muhasebe", password: "12345" },
-  personel: { name: "Personel Kullanıcı", role: "Personel", username: "personel", password: "12345" }
-};
-
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  useEffect(()=>{
-    try{
-      const s = localStorage.getItem("emsal_user");
-      if(s) setUser(JSON.parse(s));
-    }catch(e){}
-  },[]);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("emsal_user");
+      if (stored) setUser(JSON.parse(stored));
+    }
+  }, []);
 
-  useEffect(()=>{
-    try{ localStorage.setItem("emsal_user", JSON.stringify(user || {})); }catch(e){}
-  },[user]);
-
-  const login = (username, password) => {
-    // Basit demo auth (sadece demo amaçlı). Sunumda production için gerçek auth koy.
-    const found = Object.values(demoUsers).find(u => u.username===username && u.password===password);
-    if(found){ setUser(found); return { ok:true }; }
-    return { ok:false, msg:"Kullanıcı adı veya şifre hatalı" };
+  const login = (u) => {
+    setUser(u);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("emsal_user", JSON.stringify(u));
+    }
   };
 
-  const logout = () => { setUser(null); localStorage.removeItem("emsal_user"); };
+  const logout = () => {
+    setUser(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("emsal_user");
+    }
+  };
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
-}
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 export const useAuth = () => useContext(AuthContext);
