@@ -60,3 +60,6 @@ nav{box-shadow:0 1px 3px rgba(2,6,23,0.06)}
 .flag-btn{border-radius:6px;padding:6px;border:none;cursor:pointer;background:transparent}
 
 .footer{padding:12px 8px;text-align:center;color:var(--muted);background:#fff}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
