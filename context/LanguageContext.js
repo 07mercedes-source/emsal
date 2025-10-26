@@ -1,3 +1,4 @@
+// context/LanguageContext.js
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const LanguageContext = createContext(null);
@@ -19,14 +20,14 @@ const translations = {
   en: {
     home: "Home",
     depo: "Warehouse",
-    ik: "HR",
+    ik: "Human Resources",
     login: "Login",
     logout: "Logout",
     restaurant: "Restaurant",
     products: "Products",
     personnel: "Personnel",
     add: "Add",
-    remove: "Delete",
+    remove: "Remove",
     edit: "Edit",
   },
   de: {
@@ -48,21 +49,19 @@ export function LanguageProvider({ children }) {
   const [lang, setLang] = useState("tr");
 
   useEffect(() => {
-    const saved = localStorage.getItem("emsal_lang");
-    if (saved) setLang(saved);
+    try {
+      const l = localStorage.getItem("emsal_lang");
+      if (l) setLang(l);
+    } catch (e) {}
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("emsal_lang", lang);
+    try { localStorage.setItem("emsal_lang", lang); } catch (e) {}
   }, [lang]);
 
-  const t = (key) => translations[lang]?.[key] || key;
+  const t = (key) => translations[lang] && translations[lang][key] ? translations[lang][key] : key;
 
-  return (
-    <LanguageContext.Provider value={{ lang, setLang, t }}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  return <LanguageContext.Provider value={{ lang, setLang, t }}>{children}</LanguageContext.Provider>;
 }
 
 export const useLanguage = () => useContext(LanguageContext);
