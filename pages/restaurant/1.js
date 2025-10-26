@@ -1,14 +1,42 @@
-import { useAuth } from "../../context/AuthContext";
+// pages/restaurant/1.js
+import { useRestaurant } from "../../context/RestaurantContext";
+import { useState } from "react";
 
-export default function Restaurant1() {
-  const { user } = useAuth() || {};
+export default function R1(){
+  const { restaurant1, addEntry } = useRestaurant();
+  const [entry, setEntry] = useState({date:"", type:"income", amount:0, desc:""});
 
-  if (!user) return <div style={{ color: "#fff", padding: 20 }}>Giriş yapmanız gerekiyor...</div>;
+  const add = ()=>{
+    if(!entry.date) return alert("Tarih giriniz");
+    addEntry(1, entry);
+    setEntry({date:"", type:"income", amount:0, desc:""});
+  };
+
+  const totalIncome = restaurant1.filter(r=>r.type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
+  const totalExpense = restaurant1.filter(r=>r.type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
 
   return (
-    <div style={{ padding: 20, color: "#fff" }}>
-      <h1>🍽 Restaurant 1 Panel</h1>
-      <p>Burada Restaurant 1’in sipariş, stok ve menü bilgileri gösterilir.</p>
+    <div>
+      <h2 className="h1">Restaurant 1</h2>
+      <div style={{display:"flex",gap:8,marginBottom:12}}>
+        <input type="date" value={entry.date} onChange={e=>setEntry({...entry,date:e.target.value})} />
+        <select value={entry.type} onChange={e=>setEntry({...entry,type:e.target.value})}><option value="income">Gelir</option><option value="expense">Gider</option></select>
+        <input type="number" value={entry.amount} onChange={e=>setEntry({...entry,amount:e.target.value})} placeholder="Tutar" />
+        <input value={entry.desc} onChange={e=>setEntry({...entry,desc:e.target.value})} placeholder="Açıklama" />
+        <button className="button" onClick={add}>Ekle</button>
+      </div>
+
+      <div className="card">
+        <div className="small-muted">Toplam Gelir: {totalIncome} € — Toplam Gider: {totalExpense} € — Net: {totalIncome-totalExpense} €</div>
+        <table className="table" style={{marginTop:8}}>
+          <thead><tr><th>Tarih</th><th>Tip</th><th>Tutar</th><th>Açıklama</th></tr></thead>
+          <tbody>
+            {restaurant1.map(r=>(
+              <tr key={r.id}><td>{r.date}</td><td>{r.type}</td><td>{r.amount}</td><td>{r.desc}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
