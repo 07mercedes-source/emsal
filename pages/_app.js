@@ -1,17 +1,15 @@
 // pages/_app.js
 import dynamic from "next/dynamic";
 import "../styles/globals.css";
-
 import { AuthProvider } from "../context/AuthContext";
-import { LanguageProvider } from "../context/LanguageContext";
 import { IKProvider } from "../context/IKContext";
 import { DepoProvider } from "../context/DepoContext";
 import { RestaurantProvider } from "../context/RestaurantContext";
-
+import { LanguageProvider } from "../context/LanguageContext";
 import Layout from "../components/Layout";
 
 function MyApp({ Component, pageProps }) {
-  // Tamamen client-side çalıştığı için SSR kaynaklı hatalar ortadan kalkar
+  // SSR kapalı: client-side render ile hydration problemlerini engelliyoruz
   return (
     <AuthProvider>
       <LanguageProvider>
@@ -29,5 +27,4 @@ function MyApp({ Component, pageProps }) {
   );
 }
 
-// SSR kapatıyoruz (Vercel/Next prerender sorunları için)
 export default dynamic(() => Promise.resolve(MyApp), { ssr: false });
