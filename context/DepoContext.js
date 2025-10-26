@@ -5,64 +5,49 @@ import { v4 as uuidv4 } from "uuid";
 const DepoContext = createContext(null);
 
 const sampleProducts = [
-  { id: uuidv4(), sku: "P-1001", name: "Su (1L)", category: "içecek", unit: "adet", stock: 120, cost: 0.5, sell: 1.2, expiry: "" },
-  { id: uuidv4(), sku: "P-1002", name: "Ekmek", category: "kuru gıda", unit: "adet", stock: 60, cost: 0.4, sell: 0.9, expiry: "" },
-  { id: uuidv4(), sku: "P-1003", name: "Şarap", category: "alkol", unit: "şişe", stock: 30, cost: 5, sell: 12, expiry: "" },
-  { id: uuidv4(), sku: "P-1004", name: "Tavuk Eti (kg)", category: "et", unit: "kg", stock: 25, cost: 4, sell: 8, expiry: "" },
-  { id: uuidv4(), sku: "P-1005", name: "Kola (0.5L)", category: "içecek", unit: "adet", stock: 200, cost: 0.6, sell: 1.5, expiry: "" },
-  { id: uuidv4(), sku: "P-1006", name: "Pasta Malzemesi", category: "kuru gıda", unit: "kg", stock: 15, cost: 3.5, sell: 7, expiry: "" },
-  { id: uuidv4(), sku: "P-1007", name: "Bira", category: "alkol", unit: "şişe", stock: 50, cost: 1.2, sell: 3, expiry: "" },
-  { id: uuidv4(), sku: "P-1008", name: "Dana Eti (kg)", category: "et", unit: "kg", stock: 10, cost: 6, sell: 12, expiry: "" },
-  { id: uuidv4(), sku: "P-1009", name: "Pirinç (kg)", category: "kuru gıda", unit: "kg", stock: 40, cost: 1.1, sell: 2.5, expiry: "" },
-  { id: uuidv4(), sku: "P-1010", name: "Portakal Suyu", category: "içecek", unit: "adet", stock: 90, cost: 0.8, sell: 2, expiry: "" },
+  { id: uuidv4(), name: "Su Şişesi 1L", category: "İçecek", unit: "adet", qty: 120, cost: 0.5, price: 1.0, expiry: "" },
+  { id: uuidv4(), name: "Kuru Bakliyat 1kg", category: "Kuru Gıda", unit: "kg", qty: 40, cost: 2.0, price: 3.5, expiry: "" },
+  { id: uuidv4(), name: "Bira 330ml", category: "Alkol", unit: "adet", qty: 200, cost: 0.8, price: 2.5, expiry: "" },
+  { id: uuidv4(), name: "Taze Et 1kg", category: "Et", unit: "kg", qty: 30, cost: 8.0, price: 12.0, expiry: "" },
+  { id: uuidv4(), name: "Süt 1L", category: "İçecek", unit: "adet", qty: 60, cost: 0.9, price: 1.6, expiry: "" },
+  { id: uuidv4(), name: "Peynir 500g", category: "Kuru Gıda", unit: "adet", qty: 50, cost: 3.0, price: 5.0, expiry: "" },
+  { id: uuidv4(), name: "Kola 330ml", category: "İçecek", unit: "adet", qty: 180, cost: 0.6, price: 1.4, expiry: "" },
+  { id: uuidv4(), name: "Çikolata", category: "Kuru Gıda", unit: "adet", qty: 120, cost: 0.4, price: 1.0, expiry: "" },
+  { id: uuidv4(), name: "Jamon 200g", category: "Et", unit: "adet", qty: 20, cost: 4.0, price: 6.0, expiry: "" },
+  { id: uuidv4(), name: "Viski 0.7L", category: "Alkol", unit: "şişe", qty: 15, cost: 20, price: 40, expiry: "" }
 ];
 
 export function DepoProvider({ children }) {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(sampleProducts);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("emsal_products");
-      if (saved) setProducts(JSON.parse(saved));
-      else setProducts(sampleProducts);
-    } catch (e) {
-      setProducts(sampleProducts);
-    }
-  }, []);
+  useEffect(()=>{
+    try{
+      const s = localStorage.getItem("emsal_products");
+      if(s) setProducts(JSON.parse(s));
+    }catch(e){}
+  },[]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("emsal_products", JSON.stringify(products));
-    } catch (e) {}
-  }, [products]);
+  useEffect(()=>{
+    try{ localStorage.setItem("emsal_products", JSON.stringify(products)); }catch(e){}
+  },[products]);
 
   const addProduct = (p) => {
-    const newP = { id: uuidv4(), sku: `P-${Math.floor(Math.random() * 9000) + 1000}`, ...p };
-    setProducts((s) => [newP, ...s]);
-    return newP;
+    const item = { id: uuidv4(), ...p };
+    setProducts(prev => [item, ...prev]);
+    return item;
   };
 
   const updateProduct = (id, data) => {
-    setProducts((s) => s.map((it) => (it.id === id ? { ...it, ...data } : it)));
+    setProducts(prev => prev.map(x => x.id===id ? { ...x, ...data } : x));
   };
 
-  const removeProduct = (id) => setProducts((s) => s.filter((it) => it.id !== id));
+  const removeProduct = (id) => setProducts(prev => prev.filter(x => x.id!==id));
 
-  // Teslim alma (stok arttır)
-  const receiveProduct = ({ id, qty }) => {
-    setProducts((s) => s.map((it) => (it.id === id ? { ...it, stock: Number(it.stock) + Number(qty) } : it)));
+  const adjustStock = (id, delta) => {
+    setProducts(prev => prev.map(x => x.id===id ? { ...x, qty: Number(x.qty) + Number(delta) } : x));
   };
 
-  // Sevk et (stok azalt)
-  const shipProduct = ({ id, qty }) => {
-    setProducts((s) => s.map((it) => (it.id === id ? { ...it, stock: Math.max(0, Number(it.stock) - Number(qty)) } : it)));
-  };
-
-  return (
-    <DepoContext.Provider value={{ products, addProduct, updateProduct, removeProduct, receiveProduct, shipProduct }}>
-      {children}
-    </DepoContext.Provider>
-  );
+  return <DepoContext.Provider value={{ products, addProduct, updateProduct, removeProduct, adjustStock }}>{children}</DepoContext.Provider>;
 }
 
 export const useDepo = () => useContext(DepoContext);
