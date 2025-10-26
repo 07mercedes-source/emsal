@@ -1,14 +1,30 @@
-import "@/styles/globals.css";
-import Navbar from "@/components/Navbar";
+// pages/_app.js
+import "../styles/globals.css";
+import { AuthProvider } from "../context/AuthContext";
+import { LanguageProvider } from "../context/LanguageContext";
+import { DepoProvider } from "../context/DepoContext";
+import { RestaurantProvider } from "../context/RestaurantContext";
+import { IKProvider } from "../context/IKContext";
+import Layout from "../components/Layout";
+import dynamic from "next/dynamic";
 
-export default function App({ Component, pageProps }) {
+function MyApp({ Component, pageProps }) {
   return (
-    <>
-      <Navbar />
-      <Component {...pageProps} />
-      <footer className="text-center mt-10 py-4 text-gray-500 text-sm border-t">
-        © {new Date().getFullYear()} Yönetim Sistemi
-      </footer>
-    </>
+    <AuthProvider>
+      <LanguageProvider>
+        <DepoProvider>
+          <RestaurantProvider>
+            <IKProvider>
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </IKProvider>
+          </RestaurantProvider>
+        </DepoProvider>
+      </LanguageProvider>
+    </AuthProvider>
   );
 }
+
+// Eğer Vercel build/some contexts hydration hatası verirse: SSR kapatmak için
+export default dynamic(() => Promise.resolve(MyApp), { ssr: false });
