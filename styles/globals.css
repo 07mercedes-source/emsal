@@ -3,9 +3,5 @@
 @tailwind utilities;
 
 body {
-  @apply bg-gray-50 text-gray-900;
-}
-
-footer {
-  @apply text-center text-sm text-gray-500 py-4;
+  @apply bg-gray-50 text-gray-800;
 }
