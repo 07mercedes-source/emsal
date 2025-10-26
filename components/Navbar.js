@@ -10,7 +10,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-white shadow sticky top-0 z-50">
+    <nav className="bg-white shadow-sm sticky top-0 z-50 border-b">
       <div className="max-w-6xl mx-auto flex justify-between items-center p-4">
         <span className="text-lg font-bold text-blue-600">Yönetim Sistemi</span>
         <div className="space-x-4">
@@ -18,7 +18,7 @@ export default function Navbar() {
             <Link
               key={n.href}
               href={n.href}
-              className="text-gray-700 hover:text-blue-500 font-medium"
+              className="text-gray-700 hover:text-blue-600 font-medium"
             >
               {n.label}
             </Link>
