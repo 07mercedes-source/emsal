@@ -3,43 +3,34 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 
-export default function LoginPage(){
-  const { user, login } = useAuth();
+export default function LoginPage() {
+  const { login } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [err,setErr] = useState("");
+  const [err, setErr] = useState("");
 
-  const handle = (e) => {
-    e.preventDefault();
-    setErr("");
-    const res = login(username, password);
-    if(res.ok) router.push("/");
-    else setErr(res.msg || "Hata");
+  const onSubmit = async (e) => {
+    e?.preventDefault();
+    const res = login({ username, password });
+    if (!res.ok) setErr(res.msg || "Hata");
+    else router.push("/dashboard");
   };
 
   return (
-    <div className="container">
-      <div style={{maxWidth:480, marginTop:40}}>
-        <div className="card">
-          <h2 className="h2">Giriş</h2>
-          <form onSubmit={handle}>
-            <div style={{marginBottom:8}}>
-              <label className="small-muted">Kullanıcı adı</label><br/>
-              <input value={username} onChange={e=>setUsername(e.target.value)} style={{width:"100%",padding:8,borderRadius:6,border:"1px solid #e6eef7"}} />
-            </div>
-            <div style={{marginBottom:8}}>
-              <label className="small-muted">Şifre</label><br/>
-              <input type="password" value={password} onChange={e=>setPassword(e.target.value)} style={{width:"100%",padding:8,borderRadius:6,border:"1px solid #e6eef7"}} />
-            </div>
-            <div style={{display:"flex",gap:8,alignItems:"center"}}>
-              <button className="button" type="submit">Giriş</button>
-              {err && <div style={{color:"crimson"}}>{err}</div>}
-            </div>
-            <div style={{marginTop:8}} className="small-muted">Demo kullanıcı bilgileri gösterilmiyor. Sunum için admin/muhasebe/personel kullanıcıları kullanılabilir.</div>
-          </form>
+    <div className="card" style={{ maxWidth:500, margin:"40px auto" }}>
+      <h2>Giriş</h2>
+      <form onSubmit={onSubmit}>
+        <label>Kullanıcı adı</label>
+        <input value={username} onChange={e=>setUsername(e.target.value)} className="w-full p-2 border rounded mb-2" />
+        <label>Şifre</label>
+        <input value={password} onChange={e=>setPassword(e.target.value)} type="password" className="w-full p-2 border rounded mb-2" />
+        {err && <div style={{ color:"red", marginBottom:8 }}>{err}</div>}
+        <div style={{ display:"flex", justifyContent:"space-between" }}>
+          <button type="submit" className="btn btn-primary">Giriş</button>
+          <div style={{ color:"#6b7280", alignSelf:"center" }}>Bilgi: demo admin/12345 personel/11111</div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
