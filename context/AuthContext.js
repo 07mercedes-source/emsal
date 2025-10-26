@@ -1,32 +1,31 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+// context/AuthContext.js
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("emsal_user") || "null"); } catch(e){ return null; }
+  });
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("emsal_user");
-      if (stored) setUser(JSON.parse(stored));
-    }
-  }, []);
+  useEffect(()=> { localStorage.setItem("emsal_user", JSON.stringify(user)); }, [user]);
 
-  const login = (u) => {
-    setUser(u);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("emsal_user", JSON.stringify(u));
+  const login = ({ username, password }) => {
+    // demo: admin /12345  or personel / 11111
+    if (username === "admin" && password === "12345") {
+      const u = { name: "Admin", role: "admin", username };
+      setUser(u); return { ok:true, user:u };
     }
+    if (username === "personel" && password === "11111") {
+      const u = { name: "Personel", role: "personel", username };
+      setUser(u); return { ok:true, user:u };
+    }
+    return { ok:false, msg:"Hatalı kullanıcı" };
   };
 
-  const logout = () => {
-    setUser(null);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("emsal_user");
-    }
-  };
+  const logout = ()=> setUser(null);
 
   return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
-};
+}
 
 export const useAuth = () => useContext(AuthContext);
