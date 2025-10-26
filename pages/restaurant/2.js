@@ -1,22 +1,22 @@
-// pages/restaurant/1.js
+// pages/restaurant/2.js
 import { useState } from "react";
 import { useRestaurant } from "../../context/RestaurantContext";
 
-export default function Rest1() {
-  const { r1, addEntry, getMonthTotal } = useRestaurant();
+export default function Rest2() {
+  const { r2, addEntry, getMonthTotal } = useRestaurant();
   const [date, setDate] = useState(new Date().toISOString().slice(0,10));
   const [type, setType] = useState("income");
   const [amount, setAmount] = useState(0);
 
-  const onAdd = () => { addEntry(1, { date, type, amount: Number(amount) }); alert("Eklendi"); };
+  const onAdd = () => { addEntry(2, { date, type, amount: Number(amount) }); alert("Eklendi"); };
 
   const today = new Date();
   const y = today.getFullYear(), m = today.getMonth()+1;
-  const total = getMonthTotal(1, y, m);
+  const total = getMonthTotal(2, y, m);
 
   return (
     <div className="card">
-      <h2>Restaurant 1</h2>
+      <h2>Restaurant 2</h2>
       <div style={{ marginBottom:8 }}>Aktif ay toplam ciro: € {total.toLocaleString()}</div>
 
       <div style={{ display:"flex", gap:8, marginBottom:8 }}>
@@ -32,7 +32,7 @@ export default function Rest1() {
       <table className="table">
         <thead><tr><th>Tarih</th><th>Tip</th><th>Tutar</th></tr></thead>
         <tbody>
-          {r1.map((e,i)=> <tr key={i}><td>{new Date(e.date).toLocaleDateString()}</td><td>{e.type}</td><td>€ {Number(e.amount).toLocaleString()}</td></tr>)}
+          {r2.map((e,i)=> <tr key={i}><td>{new Date(e.date).toLocaleDateString()}</td><td>{e.type}</td><td>€ {Number(e.amount).toLocaleString()}</td></tr>)}
         </tbody>
       </table>
     </div>
