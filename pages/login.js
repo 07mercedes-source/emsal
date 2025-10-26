@@ -1,39 +1,44 @@
 // pages/login.js
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
-import { useLanguage } from "../context/LanguageContext";
 
-export default function LoginPage() {
-  const { login } = useAuth();
-  const { t } = useLanguage();
+export default function LoginPage(){
+  const { user, login } = useAuth();
   const router = useRouter();
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
+  const [err,setErr] = useState("");
 
-  const submit = (e) => {
-    e?.preventDefault();
-    const res = login(username.trim(), password);
-    if (!res.ok) {
-      setErr(res.msg);
-      return;
-    }
-    router.push("/");
+  const handle = (e) => {
+    e.preventDefault();
+    setErr("");
+    const res = login(username, password);
+    if(res.ok) router.push("/");
+    else setErr(res.msg || "Hata");
   };
 
   return (
-    <div style={{ maxWidth: 480 }}>
-      <h2>{t("login")}</h2>
-      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <input placeholder="Kullanıcı adı" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <input placeholder="Parola" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button type="submit" style={{ background: "#0b74ff", color: "#fff", padding: 10 }}>Giriş</button>
-      </form>
-      {err && <div style={{ color: "red", marginTop: 8 }}>{err}</div>}
-      <div style={{ marginTop: 12, color: "#666" }}>
-        Demo kullanıcılar: (sunum için) admin/muhasebe/personel — parolaları (sunum) 12345. (Bu bilgi **UI'da gösterilmez**.)
+    <div className="container">
+      <div style={{maxWidth:480, marginTop:40}}>
+        <div className="card">
+          <h2 className="h2">Giriş</h2>
+          <form onSubmit={handle}>
+            <div style={{marginBottom:8}}>
+              <label className="small-muted">Kullanıcı adı</label><br/>
+              <input value={username} onChange={e=>setUsername(e.target.value)} style={{width:"100%",padding:8,borderRadius:6,border:"1px solid #e6eef7"}} />
+            </div>
+            <div style={{marginBottom:8}}>
+              <label className="small-muted">Şifre</label><br/>
+              <input type="password" value={password} onChange={e=>setPassword(e.target.value)} style={{width:"100%",padding:8,borderRadius:6,border:"1px solid #e6eef7"}} />
+            </div>
+            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+              <button className="button" type="submit">Giriş</button>
+              {err && <div style={{color:"crimson"}}>{err}</div>}
+            </div>
+            <div style={{marginTop:8}} className="small-muted">Demo kullanıcı bilgileri gösterilmiyor. Sunum için admin/muhasebe/personel kullanıcıları kullanılabilir.</div>
+          </form>
+        </div>
       </div>
     </div>
   );
