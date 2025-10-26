@@ -1,28 +1,38 @@
-export default function Restaurant1() {
-  const siparişler = [
-    { id: 1, masa: "A1", ürün: "Pizza", durum: "Hazırlanıyor" },
-    { id: 2, masa: "B2", ürün: "Salata", durum: "Serviste" },
-  ];
+// pages/restaurant/1.js
+import { useState } from "react";
+import { useRestaurant } from "../../context/RestaurantContext";
+
+export default function Rest1() {
+  const { r1, addEntry, getMonthTotal } = useRestaurant();
+  const [date, setDate] = useState(new Date().toISOString().slice(0,10));
+  const [type, setType] = useState("income");
+  const [amount, setAmount] = useState(0);
+
+  const onAdd = () => { addEntry(1, { date, type, amount: Number(amount) }); alert("Eklendi"); };
+
+  const today = new Date();
+  const y = today.getFullYear(), m = today.getMonth()+1;
+  const total = getMonthTotal(1, y, m);
 
   return (
-    <div className="max-w-5xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow">
-      <h2 className="text-2xl font-semibold mb-4">Restoran 1</h2>
-      <table className="w-full border text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 border">Masa</th>
-            <th className="p-2 border">Ürün</th>
-            <th className="p-2 border">Durum</th>
-          </tr>
-        </thead>
+    <div className="card">
+      <h2>Restaurant 1</h2>
+      <div style={{ marginBottom:8 }}>Aktif ay toplam ciro: € {total.toLocaleString()}</div>
+
+      <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="p-2 border rounded" />
+        <select value={type} onChange={e=>setType(e.target.value)} className="p-2 border rounded">
+          <option value="income">Gelir</option>
+          <option value="expense">Gider</option>
+        </select>
+        <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} className="p-2 border rounded" placeholder="Tutar" />
+        <button className="btn btn-primary" onClick={onAdd}>Ekle</button>
+      </div>
+
+      <table className="table">
+        <thead><tr><th>Tarih</th><th>Tip</th><th>Tutar</th></tr></thead>
         <tbody>
-          {siparişler.map((s) => (
-            <tr key={s.id} className="hover:bg-gray-50">
-              <td className="p-2 border">{s.masa}</td>
-              <td className="p-2 border">{s.ürün}</td>
-              <td className="p-2 border">{s.durum}</td>
-            </tr>
-          ))}
+          {r1.map((e,i)=> <tr key={i}><td>{new Date(e.date).toLocaleDateString()}</td><td>{e.type}</td><td>€ {Number(e.amount).toLocaleString()}</td></tr>)}
         </tbody>
       </table>
     </div>
