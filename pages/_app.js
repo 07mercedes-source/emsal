@@ -1,10 +1,14 @@
 import "@/styles/globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import Navbar from "@/components/Navbar";
 
 export default function App({ Component, pageProps }) {
   return (
-    <ThemeProvider>
+    <>
+      <Navbar />
       <Component {...pageProps} />
-    </ThemeProvider>
+      <footer className="text-center mt-10 py-4 text-gray-500 text-sm border-t">
+        © {new Date().getFullYear()} Yönetim Sistemi
+      </footer>
+    </>
   );
 }
