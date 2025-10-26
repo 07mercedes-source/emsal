@@ -1,74 +1,43 @@
-// pages/restaurant/[id].js
-import React, { useState } from "react";
+// 📁 pages/restaurant/[id].js
 import { useRouter } from "next/router";
-import { useRestaurant } from "../../context/RestaurantContext";
+import { useAuth } from "../../context/AuthContext";
+import { useEffect, useState } from "react";
 
 export default function RestaurantPage() {
   const router = useRouter();
-  const { id } = router.query; // "1" veya "2"
-  const which = Number(id);
-  const { addEntry, getForMonth } = useRestaurant();
+  const { id } = router.query;
+  const { user } = useAuth() || {};
+  const [loading, setLoading] = useState(true);
+  const [menu, setMenu] = useState([]);
 
-  const today = new Date();
-  const [month, setMonth] = useState(today.getMonth() + 1);
-  const [year, setYear] = useState(today.getFullYear());
+  useEffect(() => {
+    if (!router.isReady) return;
+    // örnek menü yüklemesi
+    setMenu([
+      { name: "Izgara Tavuk", price: "12.90€" },
+      { name: "Köri Soslu Tavuk", price: "13.50€" },
+      { name: "Et Döner", price: "14.20€" },
+      { name: "Sebze Menü", price: "10.80€" },
+    ]);
+    setLoading(false);
+  }, [router.isReady]);
 
-  const rows = getForMonth(which, month, year);
-
-  const totals = rows.reduce((acc, r) => {
-    if (r.type === "gelir") acc.gelir += Number(r.amount || 0);
-    else acc.gider += Number(r.amount || 0);
-    return acc;
-  }, { gelir: 0, gider: 0 });
-
-  const [newRow, setNewRow] = useState({ date: new Date().toISOString().slice(0, 10), type: "gelir", description: "", amount: 0 });
+  if (loading) return <p className="text-center text-gray-400 mt-10">Yükleniyor...</p>;
 
   return (
-    <div>
-      <h2>Restaurant {which}</h2>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
-          {Array.from({ length: 12 }).map((_, i) => <option key={i} value={i + 1}>{i + 1}</option>)}
-        </select>
-        <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
-          {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-        </select>
-        <div style={{ marginLeft: "auto", fontWeight: 700 }}>
-          Toplam Gelir: € {totals.gelir.toLocaleString()} — Gider: € {totals.gider.toLocaleString()} — Net: € {(totals.gelir - totals.gider).toLocaleString()}
-        </div>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold text-sky-700 mb-4">Restaurant {id}</h1>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {menu.map((item, i) => (
+          <div key={i} className="bg-white p-4 shadow-md rounded-xl border border-slate-200">
+            <h2 className="text-xl font-semibold">{item.name}</h2>
+            <p className="text-slate-600">{item.price}</p>
+          </div>
+        ))}
       </div>
-
-      <div style={{ marginBottom: 12, display: "flex", gap: 8 }}>
-        <input type="date" value={newRow.date} onChange={(e) => setNewRow((s) => ({ ...s, date: e.target.value }))} />
-        <select value={newRow.type} onChange={(e) => setNewRow((s) => ({ ...s, type: e.target.value }))}>
-          <option value="gelir">Gelir</option>
-          <option value="gider">Gider</option>
-        </select>
-        <input placeholder="Açıklama" value={newRow.description} onChange={(e) => setNewRow((s) => ({ ...s, description: e.target.value }))} />
-        <input type="number" placeholder="Tutar" value={newRow.amount} onChange={(e) => setNewRow((s) => ({ ...s, amount: e.target.value }))} />
-        <button onClick={() => { addEntry(which, newRow); setNewRow({ date: new Date().toISOString().slice(0, 10), type: "gelir", description: "", amount: 0 }); }}>➕ Gelir/Gider Ekle</button>
-      </div>
-
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ borderBottom: "1px solid #eee" }}>
-            <th style={{ padding: 8 }}>Tarih</th>
-            <th>Açıklama</th>
-            <th>Tür</th>
-            <th>Tutar (€)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(r => (
-            <tr key={r.id} style={{ borderBottom: "1px solid #f5f7fb" }}>
-              <td style={{ padding: 8 }}>{r.date}</td>
-              <td>{r.description}</td>
-              <td>{r.type}</td>
-              <td>{Number(r.amount || 0).toLocaleString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <footer className="text-center mt-8 text-sm text-slate-500">
+        © {new Date().getFullYear()} EMSAL GmbH. All rights reserved.
+      </footer>
     </div>
   );
 }
