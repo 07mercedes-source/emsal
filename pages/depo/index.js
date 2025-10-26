@@ -1,54 +1,65 @@
+// pages/depo/index.js
 import { useState } from "react";
+import { useDepo } from "../../context/DepoContext";
+import Link from "next/link";
 
-export default function Depo() {
-  const [filtre, setFiltre] = useState("");
-  const ürünler = [
-    { id: 1, kategori: "Kuru Gıda", ad: "Un", miktar: "25 kg", stok: 40 },
-    { id: 2, kategori: "İçecek", ad: "Su", miktar: "1.5 lt", stok: 100 },
-    { id: 3, kategori: "Et", ad: "Kıyma", miktar: "10 kg", stok: 15 },
-  ];
+export default function DepoPage() {
+  const { products, addProduct, updateProduct, removeProduct } = useDepo();
+  const [filter, setFilter] = useState("");
+  const [newRow, setNewRow] = useState({ category:"", name:"", unit:"", stock:0, cost:0 });
 
-  const filtreli = ürünler.filter(
-    (u) =>
-      u.ad.toLowerCase().includes(filtre.toLowerCase()) ||
-      u.kategori.toLowerCase().includes(filtre.toLowerCase())
+  const filtered = products.filter(p =>
+    p.name.toLowerCase().includes(filter.toLowerCase()) || p.category.toLowerCase().includes(filter.toLowerCase())
   );
 
-  return (
-    <div className="max-w-6xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow">
-      <h2 className="text-2xl font-semibold mb-4">Depo Yönetimi</h2>
-      <input
-        value={filtre}
-        onChange={(e) => setFiltre(e.target.value)}
-        placeholder="Kategori veya ürün ara..."
-        className="w-full p-2 border rounded-lg mb-4"
-      />
+  const onAdd = () => {
+    if (!newRow.name) return alert("Ürün adı girin");
+    addProduct(newRow);
+    setNewRow({ category:"", name:"", unit:"", stock:0, cost:0 });
+  };
 
-      <table className="w-full border text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 border">Kategori</th>
-            <th className="p-2 border">Ürün</th>
-            <th className="p-2 border">Miktar</th>
-            <th className="p-2 border">Stok</th>
-          </tr>
-        </thead>
+  return (
+    <div className="card">
+      <h2 style={{marginBottom:8}}>Depo — Ürün Listesi</h2>
+
+      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
+        <input placeholder="Ürün veya kategori ara..." value={filter} onChange={e=>setFilter(e.target.value)} className="p-2 border rounded" />
+        <Link href="/depo/teslim"><button className="btn">📦 Teslim Alma</button></Link>
+        <Link href="/depo/sevk"><button className="btn">🚚 Sevk Et</button></Link>
+        <Link href="/depo/rapor"><button className="btn">📊 Raporlar</button></Link>
+      </div>
+
+      <table className="table">
+        <thead><tr><th>Kategori</th><th>Ürün</th><th>Birim</th><th>Stok</th><th>Maliyet</th><th>İşlem</th></tr></thead>
         <tbody>
-          {filtreli.map((u) => (
-            <tr key={u.id} className="hover:bg-gray-50">
-              <td className="p-2 border">{u.kategori}</td>
-              <td className="p-2 border">{u.ad}</td>
-              <td className="p-2 border">{u.miktar}</td>
-              <td className="p-2 border">{u.stok}</td>
+          {filtered.map(p=>(
+            <tr key={p.id}>
+              <td className="table-td">{p.category}</td>
+              <td className="table-td">{p.name}</td>
+              <td className="table-td">{p.unit}</td>
+              <td className="table-td">{p.stock}</td>
+              <td className="table-td">€ {Number(p.cost).toFixed(2)}</td>
+              <td className="table-td">
+                <button onClick={()=> {
+                  const newName = prompt("Yeni isim", p.name);
+                  if (newName) updateProduct(p.id, { name: newName });
+                }} className="btn btn-ghost">Düzenle</button>
+                <button onClick={()=> removeProduct(p.id)} className="btn" style={{ background:"#ef4444", color:"#fff", marginLeft:8 }}>Sil</button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <div className="flex justify-end space-x-4 mt-4">
-        <a href="/depo/teslim" className="bg-blue-500 text-white px-4 py-2 rounded-lg">Teslim Al</a>
-        <a href="/depo/sevk" className="bg-green-500 text-white px-4 py-2 rounded-lg">Sevk Et</a>
-        <a href="/depo/rapor" className="bg-gray-600 text-white px-4 py-2 rounded-lg">Raporlar</a>
+      <div style={{ marginTop:16, display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:8 }}>
+        <input placeholder="Kategori" value={newRow.category} onChange={e=>setNewRow({...newRow, category:e.target.value})} className="p-2 border rounded" />
+        <input placeholder="Ürün adı" value={newRow.name} onChange={e=>setNewRow({...newRow, name:e.target.value})} className="p-2 border rounded" />
+        <input placeholder="Birim" value={newRow.unit} onChange={e=>setNewRow({...newRow, unit:e.target.value})} className="p-2 border rounded" />
+        <input placeholder="Stok" type="number" value={newRow.stock} onChange={e=>setNewRow({...newRow, stock:e.target.value})} className="p-2 border rounded" />
+        <div>
+          <input placeholder="Maliyet" type="number" value={newRow.cost} onChange={e=>setNewRow({...newRow, cost:e.target.value})} className="p-2 border rounded" />
+          <button onClick={onAdd} className="btn btn-primary" style={{ marginLeft:8 }}>➕ Yeni Ürün Ekle</button>
+        </div>
       </div>
     </div>
   );
