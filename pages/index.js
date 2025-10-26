@@ -1,8 +1,11 @@
+import { useLanguage } from "@/context/LanguageContext";
+
 export default function Home() {
+  const { t } = useLanguage();
   return (
-    <div className="min-h-screen bg-slate-50 p-6 text-center">
-      <h1 className="text-4xl font-extrabold text-sky-700 mb-6">EMSAL GmbH Dashboard</h1>
-      <p className="text-slate-600 text-lg">Yukarıdaki menüden modül seçebilirsiniz.</p>
+    <div className="card">
+      <h1 className="text-2xl font-bold mb-4">{t("home")}</h1>
+      <p>EMSAL Yönetim Paneline hoş geldiniz 👋</p>
     </div>
   );
 }
