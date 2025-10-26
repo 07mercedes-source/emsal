@@ -1,11 +1,9 @@
 import { useRouter } from "next/router";
-import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
 
 export default function RestaurantPage() {
   const router = useRouter();
   const { id } = router.query;
-  const { user } = useAuth() || {};
   const [menu, setMenu] = useState([]);
 
   useEffect(() => {
@@ -30,10 +28,6 @@ export default function RestaurantPage() {
           </div>
         ))}
       </div>
-
-      <footer className="text-center py-6 mt-10 text-sm text-gray-500 border-t border-slate-200">
-        © {new Date().getFullYear()} EMSAL GmbH. All rights reserved.
-      </footer>
     </div>
   );
 }
